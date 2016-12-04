@@ -6,18 +6,23 @@
 #include "arguments.hh"
 #include "game.hh"
 #include "agent.hh"
+#include "pacman_agent.hh"
 
-using namespace std;
 
 void printResult(const GameResult& result) {
 
 }
 
 int main(int argc, char* argv[]) {
+    srand(time(NULL));
+
     Arguments::init(argc, argv);
 
-    Agent agent;
-    Game game(agent);
+    Agent* pacmanAI = new Pacman_Agent();
+
+    Game game(pacmanAI);
+
+    game.load_maze();
 
     GameResult result = game.play();
 

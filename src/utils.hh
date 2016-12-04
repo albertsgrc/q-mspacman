@@ -54,6 +54,13 @@ public:
 		return t[i];
 	}
 
+	void operator=(const Matrix<T>& m) {
+		r = m.r; c = m.c;
+		t = vector<vector<T>>(r);
+		for (int i = 0; i < r; ++i)
+			t[i] = m[i];
+	}
+
 	friend ostream& operator<<(ostream& s, const Matrix<T>& m) {
 		for (const vector<T> &v : m.t) {
 			for (T x : v) s << x << " ";
@@ -87,7 +94,7 @@ inline int randint(int a, int b) {
 }
 
 // Returns a random integer in [0, n-1]
-inline double randint(int n) {
+inline int randint(int n) {
 	return rand()%n;
 }
 
@@ -121,6 +128,11 @@ vector<int> randvector(int n, int a, int b) {
 void error(const string& msg) {
     perror(msg.c_str());
     exit(1);
+}
+
+template <typename T>
+bool between(T x, T l, T r) {
+	return l <= x and x <= r;
 }
 
 #define foreach(it, c) for (__typeof((c).begin()) it=(c).begin(); it != (c).end(); ++it)
