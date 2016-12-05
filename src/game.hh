@@ -11,13 +11,6 @@
 #include "position.hh"
 #include "ghost_agent.hh"
 
-const uchar PILL = '.';
-const uchar POWER_PILL = 'o';
-const uchar PACMAN = 'P';
-const uchar GHOST = 'G';
-const uchar FREE = ' ';
-const uchar WALL = '%';
-
 struct GameResult {
     GameResult() {}
 
@@ -36,14 +29,6 @@ private:
 
     Agent* pacman;
     vector<Agent*> ghosts;
-
-    int ghost_in_position(const Position& pos) {
-        for (int i = 0; i < state.ghosts.size(); ++i) {
-            if (state.ghosts[i].pos == pos) return i;
-        }
-
-        return -1;
-    }
 
     float ghost_speed(int ghost_id) {
         float speed_normal = Arguments::ghost_speed*Arguments::pacman_speed;
@@ -88,20 +73,20 @@ public:
             char dummy; layout_file >> dummy;
             for (int j = 0; j < cols; ++j) {
                 char cell; layout_file >> cell;
-                state.maze[i][j] = cell != PACMAN and cell != GHOST ? cell : FREE;
+                state.maze[i][j] = cell != State::PACMAN and cell != State::GHOST ? cell : State::FREE;
 
-                state.n_pills_left += cell == PILL;
-                state.n_powerpills_left += cell == POWER_PILL;
+                state.n_pills_left += cell == State::PILL;
+                state.n_powerpills_left += cell == State::POWER_PILL;
 
-                if (cell == PACMAN) state.pacman = Agent_State(Position(i, j), Direction::UP);
-                else if (cell == GHOST) {
+                if (cell == State::PACMAN) state.pacman = Agent_State(Position(i, j), Direction::UP);
+                else if (cell == State::GHOST) {
                     state.ghosts.push_back(Ghost_State(Position(i, j), Direction::UP));
                     ghosts.push_back((Agent*)new Ghost_Agent());
                 }
             }
         }
 
-        cout << state << endl;
+        //cout << state << endl;
 
         initialState = state;
     }
@@ -116,7 +101,7 @@ public:
 
         while (state.n_powerpills_left + state.n_pills_left > 0) {
             cout.flush();
-            //usleep(1000000);
+            usleep(1000000);
 
             ++state.round;
             state.n_rounds_powerpill = max(0, state.n_rounds_powerpill - 1);
@@ -135,31 +120,31 @@ public:
                     char cell_content = state.maze[next_pos.i][next_pos.j];
 
 
-                    if (cell_content == WALL) {
+                    if (cell_content == State::WALL) {
                         // TODO: Warn
                     }
                     else {
                         state.pacman.pos.move(pacman_direction);
 
-                        int ghost_id = ghost_in_position(next_pos);
+                        int ghost_id = state.ghost_in_position(next_pos);
 
                         if (ghost_id != -1 and game_over_on_collision(state.ghosts[ghost_id]))
-                            break;
+                            goto end;
 
                         switch(cell_content) {
-                            case PILL:
-                                state.maze[next_pos.i][next_pos.j] = FREE;
+                            case State::PILL:
+                                state.maze[next_pos.i][next_pos.j] = State::FREE;
                                 --state.n_pills_left;
                                 break;
-                            case POWER_PILL:
-                                state.maze[next_pos.i][next_pos.j] = FREE;
+                            case State::POWER_PILL:
+                                state.maze[next_pos.i][next_pos.j] = State::FREE;
                                 --state.n_powerpills_left;
 
                                 for (Ghost_State& ghost : state.ghosts) ghost.scared = true;
 
                                 state.n_rounds_powerpill = Arguments::n_rounds_powerpill;
                                 break;
-                            case FREE: break;
+                            case State::FREE: break;
                             default: assert(false);
                         }
                     }
@@ -201,14 +186,14 @@ public:
                             Position next_pos = ghost.pos.move_destination(ghost_direction);
                             char cell_content = state.maze[next_pos.i][next_pos.j];
 
-                            if (cell_content == WALL) {
+                            if (cell_content == State::WALL) {
                                 // TODO: WARN
                             }
                             else {
                                 ghost.pos.move(ghost_direction);
 
                                 if (state.pacman.pos == next_pos and game_over_on_collision(ghost))
-                                    break;
+                                    goto end;
                             }
                         }
                     }
@@ -240,7 +225,9 @@ public:
             cout << state << endl;
         }
 
-        //cout << state << endl;
+        end:
+
+        cout << state << endl;
         cout << game_over << endl;
 
         this->result.state = this->state;

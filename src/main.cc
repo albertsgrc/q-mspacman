@@ -24,7 +24,5 @@ int main(int argc, char* argv[]) {
 
     game.load_maze();
 
-    GameResult result = game.play();
-
-    printResult(result);
+    game.play();
 }

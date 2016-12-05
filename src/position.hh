@@ -17,7 +17,7 @@ struct Position {
         i += direction.i; j += direction.j;
     }
 
-    inline Position move_destination(const Direction& direction) {
+    inline Position move_destination(const Direction& direction) const {
         return Position(i + direction.i, j + direction.j);
     }
 
@@ -29,11 +29,23 @@ struct Position {
         return i == pos.i and j == pos.j;
     }
 
+    inline bool operator!=(const Position& pos) {
+        return not operator==(pos);
+    }
+
+    inline int manhattan(const Position& p) const {
+        return abs(p.i - i) + abs(p.j - j);
+    }
+
     friend ostream& operator<<(ostream& s, const Position& p) {
         s << p.i << ' ' << p.j;
         return s;
 	}
 };
+
+inline bool operator!=(const Position& a, const Position& b) {
+    return a.i != b.i or a.j != b.j;
+}
 
 
 #endif

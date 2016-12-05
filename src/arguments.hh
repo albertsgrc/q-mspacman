@@ -12,7 +12,7 @@ const string DFL_LAYOUT_PATH = LAYOUT_FOLDER + "originalClassic.lay";
 
 const float DFL_PACMAN_SPEED = 0.5;
 const float DFL_GHOST_SPEED = 0.8; // Relative to pacman
-const float DFL_GHOST_AFRAID_SPEED_FRACTION = 0.55; // Relative to their current speed
+const float DFL_GHOST_AFRAID_SPEED_FRACTION = 0.8; // Relative to their current speed
 
 const int   DFL_N_ROUNDS_POWERPILL = 25;
 const int   DFL_N_ROUNDS_GHOST_REVIVE = 7;
