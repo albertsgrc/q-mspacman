@@ -14,8 +14,23 @@ const float DFL_PACMAN_SPEED = 0.5;
 const float DFL_GHOST_SPEED = 0.8; // Relative to pacman
 const float DFL_GHOST_AFRAID_SPEED_FRACTION = 0.8; // Relative to their current speed
 
-const int   DFL_N_ROUNDS_POWERPILL = 25;
-const int   DFL_N_ROUNDS_GHOST_REVIVE = 7;
+// The duration in rounds of a scatter mode cycle will be divided
+// by this factor at the end of every cycle
+const float DFL_SCATTER_CYCLE_FACTOR = 1.05;
+// The duration in rounds of a chase mode cycle will be multiplied
+// by this factor at the end of every cycle
+const float DFL_CHASE_CYCLE_FACTOR = 1.1;
+// Initial duration of a scatter cycle in rounds.
+// Here a round is considered to be the time it takes
+// for pacman to move one cell
+const int DFL_INITIAL_SCATTER_CYCLE_ROUNDS = 30;
+// Same for chase cycle
+const int DFL_INITIAL_CHASE_CYCLE_ROUNDS = 30;
+
+const float DFL_CYCLE_ROUNDS_STDEV = 1;
+
+const int DFL_N_ROUNDS_POWERPILL = 25;
+const int DFL_N_ROUNDS_GHOST_REVIVE = 7;
 
 /*
     Steps to add a new argument with name "argument"
@@ -37,6 +52,11 @@ public:
     static float ghost_afraid_speed_fraction;
     static int n_rounds_powerpill;
     static int n_rounds_ghost_revive;
+    static float scatter_cycle_factor;
+    static float chase_cycle_factor;
+    static int initial_scatter_cycle_rounds;
+    static int initial_chase_cycle_rounds;
+    static float cycle_rounds_stdev;
 
     static void init(int argc, char* argv[]);
 
@@ -45,6 +65,8 @@ public:
     static void assign_argument(const string& key, const string& value);
 
     static void treat_arg(const string& arg);
+
+    static void postprocess();
 };
 
 string Arguments::layout_path;
@@ -53,6 +75,11 @@ float Arguments::pacman_speed;
 float Arguments::ghost_afraid_speed_fraction;
 int Arguments::n_rounds_powerpill;
 int Arguments::n_rounds_ghost_revive;
+float Arguments::scatter_cycle_factor;
+float Arguments::chase_cycle_factor;
+int Arguments::initial_scatter_cycle_rounds;
+int Arguments::initial_chase_cycle_rounds;
+float Arguments::cycle_rounds_stdev;
 
 void Arguments::init(int argc, char* argv[]) {
     Arguments::layout_path = DFL_LAYOUT_PATH;
@@ -61,6 +88,11 @@ void Arguments::init(int argc, char* argv[]) {
     Arguments::ghost_afraid_speed_fraction = DFL_GHOST_AFRAID_SPEED_FRACTION;
     Arguments::n_rounds_powerpill = DFL_N_ROUNDS_POWERPILL;
     Arguments::n_rounds_ghost_revive = DFL_N_ROUNDS_GHOST_REVIVE;
+    Arguments::scatter_cycle_factor = DFL_SCATTER_CYCLE_FACTOR;
+    Arguments::chase_cycle_factor = DFL_CHASE_CYCLE_FACTOR;
+    Arguments::initial_scatter_cycle_rounds = DFL_INITIAL_SCATTER_CYCLE_ROUNDS;
+    Arguments::initial_chase_cycle_rounds = DFL_INITIAL_CHASE_CYCLE_ROUNDS;
+    Arguments::cycle_rounds_stdev = DFL_CYCLE_ROUNDS_STDEV;
 
     for (int i = 1; i < argc; ++i) treat_arg(argv[i]);
 }
@@ -72,6 +104,11 @@ void Arguments::assign_argument(const string& key, const string& value) {
     else if (key == "ghost_afraid_speed_fraction") Arguments::ghost_afraid_speed_fraction = stof(value);
     else if (key == "n_rounds_powerpill") Arguments::n_rounds_powerpill = stoi(value);
     else if (key == "n_rounds_ghost_revive") Arguments::n_rounds_ghost_revive = stoi(value);
+    else if (key == "scatter_cycle_factor") Arguments::scatter_cycle_factor = stof(value);
+    else if (key == "chase_cycle_factor") Arguments::chase_cycle_factor = stof(value);
+    else if (key == "initial_scatter_cycle_rounds") Arguments::initial_scatter_cycle_rounds = stoi(value);
+    else if (key == "initial_chase_cycle_rounds") Arguments::initial_chase_cycle_rounds = stoi(value);
+    else if (key == "cycle_rounds_stdev") Arguments::cycle_rounds_stdev = stof(value);
     else error("Invalid argument name '" + key + "'");
 }
 
@@ -94,6 +131,13 @@ void Arguments::parse_key_value(const string& arg, string& key, string& value) {
 
     while (i < arg.length())
         value.push_back(arg[i++]);
+}
+
+void Arguments::postprocess() {
+    Arguments::ghost_speed *= Arguments::pacman_speed;
+
+    Arguments::initial_chase_cycle_rounds /= Arguments::pacman_speed;
+    Arguments::initial_scatter_cycle_rounds /= Arguments::pacman_speed;
 }
 
 #endif

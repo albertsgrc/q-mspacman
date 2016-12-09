@@ -17,6 +17,9 @@ struct State {
     // Contains the current state of the maze
     Matrix<char> maze;
 
+    // Contains a list of all valid positions in the board
+    vector<Position> valid_positions;
+
     // Number of power pill rounds left. 0 if no power pill in action
     int n_rounds_powerpill;
 
@@ -41,6 +44,7 @@ struct State {
         n_powerpills_left = o.n_powerpills_left;
         ghosts = o.ghosts;
         pacman = o.pacman;
+        valid_positions = o.valid_positions;
     }
 
     friend ostream& operator<<(ostream& o, const State& s) {
@@ -107,6 +111,10 @@ struct State {
         }
 
         return valid_dirs[randint(valid_dirs.size())];
+    }
+
+    inline Position random_valid_pos() const {
+        return valid_positions[randint(valid_positions.size())];
     }
 };
 

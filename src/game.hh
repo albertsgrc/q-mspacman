@@ -4,12 +4,14 @@
 #include <fstream>
 #include <sstream>
 #include <unistd.h>
+#include <random>
 
 #include "agent.hh"
 #include "arguments.hh"
 #include "utils.hh"
 #include "position.hh"
 #include "ghost_agent.hh"
+#include "state.hh"
 
 struct GameResult {
     GameResult() {}
@@ -31,11 +33,9 @@ private:
     vector<Agent*> ghosts;
 
     float ghost_speed(int ghost_id) {
-        float speed_normal = Arguments::ghost_speed*Arguments::pacman_speed;
-
         return state.ghosts[ghost_id].scared ?
-               speed_normal*Arguments::ghost_afraid_speed_fraction :
-               speed_normal;
+               Arguments::ghost_speed*Arguments::ghost_afraid_speed_fraction :
+               Arguments::ghost_speed;
     }
 
     bool game_over_on_collision(Ghost_State& ghost) {
@@ -49,6 +49,36 @@ private:
         }
 
         return false;
+    }
+
+    void update_ghost_states() {
+        default_random_engine generator;
+        normal_distribution<float> distribution;
+        for (Ghost_State& ghost : state.ghosts) {
+            if (ghost.n_rounds_left_behaviour-- == 0) {
+                switch (ghost.behaviour) {
+                    case SCATTER:
+                            distribution = normal_distribution<float>(ghost.chase_cycle_rounds, Arguments::cycle_rounds_stdev);
+                            ghost.n_rounds_left_behaviour =  max(1, (int) distribution(generator));
+                            ghost.behaviour = Ghost_Behaviour::CHASE;
+                            ghost.chase_cycle_rounds *= Arguments::chase_cycle_factor;
+                        break;
+                    case CHASE:
+                            if (ghost.scatter_cycle_rounds >= 1) {
+                                distribution = normal_distribution<float>(ghost.scatter_cycle_rounds, Arguments::cycle_rounds_stdev);
+                                ghost.n_rounds_left_behaviour =  max(1, (int) distribution(generator));
+                                ghost.behaviour = Ghost_Behaviour::SCATTER;
+                                ghost.scatter_cycle_rounds /= Arguments::scatter_cycle_factor;
+                                ghost.scatter_pos = state.random_valid_pos();
+                            }
+                        break;
+                    default: ensure(false, "Invalid ghost behaviour");
+                }
+            }
+            else if (ghost.behaviour == SCATTER) {
+                while (ghost.scatter_pos == ghost.pos) ghost.scatter_pos = state.random_valid_pos();
+            }
+        }
     }
 
 public:
@@ -78,6 +108,8 @@ public:
                 state.n_pills_left += cell == State::PILL;
                 state.n_powerpills_left += cell == State::POWER_PILL;
 
+                if (cell != State::WALL) state.valid_positions.push_back(Position(i, j));
+
                 if (cell == State::PACMAN) state.pacman = Agent_State(Position(i, j), Direction::UP);
                 else if (cell == State::GHOST) {
                     state.ghosts.push_back(Ghost_State(Position(i, j), Direction::UP));
@@ -92,16 +124,18 @@ public:
     }
 
     void reset() {
-        assert(loaded_maze);
+        ensure(loaded_maze, "Try to reset without a loaded maze");
         state = initialState;
     }
 
     GameResult& play() {
-        assert(loaded_maze);
+        ensure(loaded_maze, "Try to play without a loaded maze");
 
         while (state.n_powerpills_left + state.n_pills_left > 0) {
             cout.flush();
-            usleep(1000000);
+            usleep(100000);
+
+            update_ghost_states();
 
             ++state.round;
             state.n_rounds_powerpill = max(0, state.n_rounds_powerpill - 1);
@@ -145,7 +179,7 @@ public:
                                 state.n_rounds_powerpill = Arguments::n_rounds_powerpill;
                                 break;
                             case State::FREE: break;
-                            default: assert(false);
+                            default: ensure(false, "Invalid cell_content character '%c'", cell_content);
                         }
                     }
                 }

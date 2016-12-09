@@ -47,5 +47,9 @@ inline bool operator!=(const Position& a, const Position& b) {
     return a.i != b.i or a.j != b.j;
 }
 
+inline bool operator==(const Position& a, const Position& b) {
+    return not (a != b);
+}
+
 
 #endif

@@ -137,4 +137,35 @@ bool between(T x, T l, T r) {
 
 #define foreach(it, c) for (__typeof((c).begin()) it=(c).begin(); it != (c).end(); ++it)
 
+#ifndef DEBUG
+#define DEBUG 1 // set debug mode
+#endif
+
+#if DEBUG
+#define __log(...) {\
+    char str[200];\
+    sprintf(str, __VA_ARGS__);\
+    std::cout << "Debug[" << __FILE__ << "][" << __FUNCTION__ << "][Line " << __LINE__ << "] " << str << std::endl;\
+}
+#else
+#define __log(...)
+#endif
+
+#ifndef DEV
+#define DEV 1 // set dev mode
+#endif
+
+#if DEV
+#define ensure(condition, ...) {\
+	if (not condition) {\
+		char str[200];\
+    	sprintf(str, __VA_ARGS__);\
+    	std::cout << "Error[" << __FILE__ << "][" << __FUNCTION__ << "][Line " << __LINE__ << "] " << str << std::endl;\
+		exit(1);\
+	}\
+}
+#else
+#define ensure(...)
+#endif
+
 #endif

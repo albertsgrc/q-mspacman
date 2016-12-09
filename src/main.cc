@@ -17,6 +17,7 @@ int main(int argc, char* argv[]) {
     srand(time(NULL));
 
     Arguments::init(argc, argv);
+    Arguments::postprocess();
 
     Agent* pacmanAI = new Pacman_Agent();
 

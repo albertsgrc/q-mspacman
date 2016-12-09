@@ -14,7 +14,7 @@ public:
     Direction() {}
 
     Direction(int i, int j) : i(i), j(j) {
-        assert(between(abs(i) + abs(j), 0, 1));
+        ensure(between(abs(i) + abs(j), 0, 1), "Incorrect direction %d %d", i, j);
     }
 
     inline void operator=(const Direction& d) {
