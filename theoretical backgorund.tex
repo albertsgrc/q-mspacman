@@ -1,0 +1,75 @@
+\documentclass[a4paper]{article}
+
+%% Language and font encodings
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{listings}
+\lstset{language=Matlab}
+
+
+%% Sets page size and margins
+\usepackage[a4paper]{geometry}
+
+%% Useful packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage[parfill]{parskip}%paragraph new lines
+\usepackage{float}
+\usepackage{rotating}
+
+\newcommand{\myworries}[1]{{\colorbox{red!30}{#1}}}
+
+\title{Machine Learning- Pacman}
+\author{David Langbroek}
+
+\begin{document}
+\maketitle
+
+\section{Theoretical background}
+\subsection{Reinforcement learning}
+The research goal is to let a computer learn to play Pacman "good". Good is in quotations because we do not know what move or action is the best at any given time. Moreover the goodness of a move or action depends on the next moves and actions as well. Therefore we can not use any supervised method of learning but instead use reinforcement learning. In reinforcement learning there is an agent, who makes the decisons and an environment which represents a certain state. At any state of the environment, the agent take an action that changes the state and earns a reward. Depending on the reward, which is the feedback to an action, there is an learning agent. Illustrated in the figure. \\
+\includegraphics[width=\textwidth]{reinforcement}
+
+\subsection{MDP}
+Pacman is a game with many possible roads to victory. The game can also take many steps before it is completed. In theory the game can continue indefinitely. Because of these factor we require a learning method that does not depend on its previous states. This is better know as the Markov property. The next action should solely depend on the current state. therefore we chose to use Markov decision process, MDP, as our base reinforcement learning model. \\
+MDP is defined as a five tupel ($S$,$A$,$P$,$R$,$\gamma$). $S$ Denotes a finite set of states, $A$ a finite set of actions, P a probability that a given stated lead to one of the possible next states, R represents the reward gained by changing state and $\gamma$ is a discount factor which indicates the importance between immediate and future reward. We assume the set $S$ and $A$ are finite, as we can assume the game ends at some point, tough this could theoretically take a long time. Time is discrete with states being one interval of time apart.  \\
+A MDP need a policy $\pi$ as decision maker. A function that given a state $s$  specifies which action $a$ will be taken. The typical approach is to find a policy that maximizes the reward. In order to find this policy we define a value function $V$ which will indicate the cumulative expected rewards earned by following the given policy from a state. Each time step the rewards are discounted by $\gamma\in [0,1)$ in the infinity-horizon case which we are dealing with. \\
+\begin{equation*}
+V^{\pi}(s_t)=E[r_{t+1} +\gamma r_{t+2} + \gamma^2 r_{t+3} + \cdots]=E\Big[\sum^{\infty} \gamma^{i-1}r_{i=1}r_{t+})\Big]
+\end{equation*}
+The optimal policy then becomes $\pi^*$ associated with the policy that gave the highest value function $V^*(s_t)$.\\
+
+\subsection{$Q$-learning}
+However if the reward or probabilities are unknown then it is a problem of reinforcement learning. Where we will use state action pairs to derive $Q(s,a)$ values in stead of only using states to derive $V(s)$ value's. $V(s_t)$ Denotes how good it is to be in state $s_t$, where $Q(s_T,a_t)$ denotes how good it is to take action $a_t$ in state $s_t$. The optimal $Q^*$ value can be derives using the following formula:
+\begin{equation*}
+Q^*(s_t,a_t)=E[r_{t+1}]+\gamma\sum_{s_{t+1}}P(s_{t+1}\\s_t,a_t)max_{a_{t=1}}Q^*(s_{t+1},a_{t+1})
+\end{equation*}
+Thus the $Q^*(s_t,a_t)$ is the sum of the reward by taking $a_t$ and a discounted sum of all possible actions $a_{t+1}$ with its according maximum $Q^*(s_{t+1},a_{t+1})$ value in the next state times the probability that action $a_{t+1}$ occurs. As in our case the reward is not deterministic as the movement of the ghosts is not under the control of our actions. Because the next state and associated reward depend on the movement of the ghost, we can not have a direct assignment. Instead we track an average score of the $Q^*(s,a)$ values that we encounter after the given state and action. Updating the $Q^*(s,a)$ every time we encounter the state action pair. This is know as the $Q$-learning algorithm: 
+\begin{equation*}
+\hat Q^*(s_t,a_t)\leftarrow \hat Q^*(s_t,a_t) + \eta\Big(r_{t+1} +\gamma max_{a_{t+1}}\hat Q(s_{t+1},a_{t+1})-Q(s_t,a_t)\Big)
+\end{equation*}
+Where $\hat Q^*(s_t,a_t)$ is the estimated truth/average value of the state action pair. Now the optimal policy $\pi^*$ can be defined as taking the action that gives the maximum $\hat Q^*(s_t,a_t)$ for any given state. As hinted at, to obtain these $Q^*(s_t,a_t)$ value we need to simply play the game and chose "randomly" an action during any state. Gradually as the samples increase we will get appropriate estimates for the $Q^*(s_t,a_t)$ values. But to keep updating these values there need to be a chance that we chose the non-optimal action given a state. This exploitation vs exploration poses a dilemma, as we want the "best" action to be used and trained most thoroughly yet we need to open to learn other actions such that our policy can improve. Therefore we implement the so called $\epsilon$-greedy search where with probability $\epsilon\in(0,1)$ we perform randomly a possible action (exploration) and with probability $1-\epsilon$ we perform the action that associated with the highest $Q^*$ value (exploitation). Moreover we start with a relative high $\epsilon$ as to try all different actions and gradually decrease as such to improve the "best" action (still not guaranteed the best). HOW DO WE EXACTLY WANT TO DECREASE $\epsilon$?
+
+
+
+
+
+
+
+\subsection{Possible expirements and why}
+Here i am just spit balling a bit about thing that we should check/experiment with at the later stage.
+\begin{enumerate}
+\item I think we should try different epsilon, at some point. Especially a less explorative epsilon, because we might find our good results faster and thus have a better pacman game.
+\item From one the papers, one of those project papers with supervisors, they had as result that pacaman in the early game was playing very well and dodging ghost. But late game this dropped of, partly because the dataset for long game was significantly smaller (it often died very fast). I think we should experiment at least once by letting the code go longer then usual, or check that it still performs decently in the late game.
+\item Related we might want to try different time punishing rewards (-1 or -2 or whatever for each step). As it might learn to play rather sloppy (moving towards ghost) as a result of his inability to eat all the dots anyway.
+
+\end{enumerate}
+
+
+
+
+
+\end{document}
