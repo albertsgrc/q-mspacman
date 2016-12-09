@@ -30,10 +30,18 @@ public:
         return i == d.i and j == d.j;
     }
 
+    inline bool operator!=(const Direction& d) {
+        return not (*this == d);
+    }
+
     static inline Direction random() {
         return LIST[randint(NUMBER)];
     }
 };
+
+inline bool operator!=(const Direction& a, const Direction& b) {
+    return a.i != b.i or a.j != b.j;
+}
 
 Direction Direction::LEFT = Direction(0, -1);
 Direction Direction::RIGHT = Direction(0, +1);

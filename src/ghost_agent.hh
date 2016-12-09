@@ -19,7 +19,19 @@ public:
         const Ghost_State& ghost = s.ghosts[ghost_id];
 
         if (ghost.scared and s.n_rounds_powerpill > 0) {
-            return AStar(ghost.pos, s.pacman.pos, s).dir.opposite();
+            Direction pacman_dir = AStar(ghost.pos, s.pacman.pos, s).dir;
+            Direction opposite = pacman_dir.opposite();
+            if (s.valid_to_move(ghost.pos.move_destination((opposite))))
+                return opposite;
+            else {
+                for (const Direction& d : Direction::LIST) {
+                    if (d != opposite and d != pacman_dir and s.valid_to_move(ghost.pos.move_destination(d))) {
+                        return d;
+                    }
+                }
+
+                return pacman_dir;
+            }
         }
         else {
             switch(ghost.behaviour) {
