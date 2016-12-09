@@ -2,3 +2,4 @@ pacman
 cmake-build-debug/
 CMakeLists.txt
 .idea/
+pacman.dSYM

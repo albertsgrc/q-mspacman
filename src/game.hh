@@ -155,22 +155,6 @@ public:
                 state.pacman.dir = pacman_direction;
             }
 
-            // Comprovar si hi ha canvi de direccio
-            // Augmentar / 1-step
-            // Si arriba a 1:
-            //    Step a 0
-            //    Comprovar q no hi ha paret
-            //      Si hi ha no es mou
-            //      Si no hi ha
-            //        Moure a posicio
-            //        Comprovar si hi ha power pill
-            //          Si hi ha, decrementar contador, posar ghosts a scared i posar n_rounds_powerpill
-            //        Sino, si hi ha pill
-            //          Decrementar contador
-            //        Sino, si hi ha ghost
-            //          Si esta scared es mata
-            //          S'acaba el joc, game_over = true i break
-
             for (uint i = 0; i < min(1 + state.round/4, (int) ghosts.size()); ++i) {
                 Ghost_State& ghost = state.ghosts[i];
 
@@ -210,16 +194,6 @@ public:
                     --ghost.n_rounds_revive;
                 }
 
-                // Comprovar si hi ha canvi de direccio
-                // Augmentar segons si esta scared (scared && n_rounds_powerpill > 0) / 1-step
-                // Si arriba a 1:
-                //    Step a 0
-                //    Comprovar q no hi ha paret
-                //      Si hi ha no es mou
-                //      Si no hi ha
-                //        Moure a posicio
-                //        Comprovar si hi ha pacman
-                //          Si hi ha, s'acaba el joc, game_over = true i break
             }
 
             cout << state << endl;
