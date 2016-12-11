@@ -191,7 +191,7 @@ public:
                 state.pacman.dir = pacman_direction;
             }
 
-            for (int i = 0; i < min(1 + state.round/4, (int) ghosts.size()); ++i) {
+            for (int i = 0; i < min(1 + state.round/Arguments::n_rounds_between_ghosts_start, (int) ghosts.size()); ++i) {
                 Ghost_State& ghost = state.ghosts[i];
 
                 if (ghost.is_alive()) {

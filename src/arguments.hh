@@ -7,6 +7,10 @@ using namespace std;
 
 const string LAYOUT_FOLDER = "./layouts/";
 
+// ## DEFAULT VALUES ##
+
+// Note that here a round is considered to be the time it takes
+// for pacman to move one cell, which is not the same as an actual game round
 
 const string DFL_LAYOUT_PATH = LAYOUT_FOLDER + "originalClassic.lay";
 
@@ -21,8 +25,7 @@ const float DFL_SCATTER_CYCLE_FACTOR = 1.05;
 // by this factor at the end of every cycle
 const float DFL_CHASE_CYCLE_FACTOR = 1.1;
 // Initial duration of a scatter cycle in rounds.
-// Here a round is considered to be the time it takes
-// for pacman to move one cell
+
 const int DFL_INITIAL_SCATTER_CYCLE_ROUNDS = 30;
 // Same for chase cycle
 const int DFL_INITIAL_CHASE_CYCLE_ROUNDS = 30;
@@ -33,6 +36,11 @@ const float DFL_CYCLE_ROUNDS_STDEV = 1;
 
 const int DFL_N_ROUNDS_POWERPILL = 25;
 const int DFL_N_ROUNDS_GHOST_REVIVE = 7;
+
+// For a value of X, ghost #0 will start moving at round 1, ghost #1 will start
+// at round X, ghost #2 will start at round 2*X, ghost #3 will start at round 3*X,
+// and so on. Note that round here also means the time it takes for pacman to move one cell
+const int DFL_N_ROUNDS_BETWEEN_GHOSTS_START = 4;
 
 /*
     Steps to add a new argument with name "argument"
@@ -59,6 +67,7 @@ public:
     static int initial_scatter_cycle_rounds;
     static int initial_chase_cycle_rounds;
     static float cycle_rounds_stdev;
+    static int n_rounds_between_ghosts_start;
 
     static void init(int argc, char* argv[]);
 
@@ -82,6 +91,7 @@ float Arguments::chase_cycle_factor;
 int Arguments::initial_scatter_cycle_rounds;
 int Arguments::initial_chase_cycle_rounds;
 float Arguments::cycle_rounds_stdev;
+int Arguments::n_rounds_between_ghosts_start;
 
 void Arguments::init(int argc, char* argv[]) {
     Arguments::layout_path = DFL_LAYOUT_PATH;
@@ -95,6 +105,7 @@ void Arguments::init(int argc, char* argv[]) {
     Arguments::initial_scatter_cycle_rounds = DFL_INITIAL_SCATTER_CYCLE_ROUNDS;
     Arguments::initial_chase_cycle_rounds = DFL_INITIAL_CHASE_CYCLE_ROUNDS;
     Arguments::cycle_rounds_stdev = DFL_CYCLE_ROUNDS_STDEV;
+    Arguments::n_rounds_between_ghosts_start = DFL_N_ROUNDS_BETWEEN_GHOSTS_START;
 
     for (int i = 1; i < argc; ++i) treat_arg(argv[i]);
 }
@@ -111,6 +122,7 @@ void Arguments::assign_argument(const string& key, const string& value) {
     else if (key == "initial_scatter_cycle_rounds") Arguments::initial_scatter_cycle_rounds = stoi(value);
     else if (key == "initial_chase_cycle_rounds") Arguments::initial_chase_cycle_rounds = stoi(value);
     else if (key == "cycle_rounds_stdev") Arguments::cycle_rounds_stdev = stof(value);
+    else if (key == "n_rounds_between_ghosts_start") Arguments::n_rounds_between_ghosts_start = stoi(value);
     else error("Invalid argument name '" + key + "'");
 }
 
@@ -143,6 +155,7 @@ void Arguments::postprocess() {
     Arguments::cycle_rounds_stdev /= Arguments::pacman_speed;
     Arguments::n_rounds_ghost_revive /= Arguments::pacman_speed;
     Arguments::n_rounds_powerpill /= Arguments::pacman_speed;
+    Arguments::n_rounds_between_ghosts_start /= Arguments::pacman_speed;
 }
 
 #endif
