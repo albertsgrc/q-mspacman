@@ -25,6 +25,7 @@ private:
     GameResult result;
     State initialState;
     State state;
+
     bool loaded_maze;
 
     bool game_over;
@@ -33,49 +34,50 @@ private:
     vector<Agent*> ghosts;
 
     float ghost_speed(int ghost_id) {
-        return state.ghosts[ghost_id].scared ?
+        return state.is_scared(state.ghosts[ghost_id]) ?
                Arguments::ghost_speed*Arguments::ghost_afraid_speed_fraction :
                Arguments::ghost_speed;
     }
 
     bool game_over_on_collision(Ghost_State& ghost) {
-        if (state.n_rounds_powerpill > 0 and ghost.scared) {
-            ghost.scared = false;
+        if (not ghost.is_alive()) return false;
+
+        if (state.is_scared(ghost)) {
+            ghost.maybe_scared = false;
             ghost.n_rounds_revive = Arguments::n_rounds_ghost_revive;
         }
-        else if (ghost.n_rounds_revive == 0) {
-            game_over = true;
-            return true;
-        }
+        else game_over = true;
 
-        return false;
+        return game_over;
     }
 
     void update_ghost_states() {
-        default_random_engine generator;
-        normal_distribution<float> distribution;
         for (Ghost_State& ghost : state.ghosts) {
             if (ghost.n_rounds_left_behaviour-- == 0) {
+                default_random_engine generator;
+                normal_distribution<float> distribution;
+
                 switch (ghost.behaviour) {
                     case SCATTER:
-                            distribution = normal_distribution<float>(ghost.chase_cycle_rounds, Arguments::cycle_rounds_stdev);
-                            ghost.n_rounds_left_behaviour =  max(1, (int) distribution(generator));
-                            ghost.behaviour = Ghost_Behaviour::CHASE;
-                            ghost.chase_cycle_rounds *= Arguments::chase_cycle_factor;
+                        distribution = normal_distribution<float>(ghost.chase_cycle_rounds, Arguments::cycle_rounds_stdev);
+                        ghost.behaviour = Ghost_Behaviour::CHASE;
+                        ghost.chase_cycle_rounds *= Arguments::chase_cycle_factor;
                         break;
                     case CHASE:
-                            if (ghost.scatter_cycle_rounds >= 1) {
-                                distribution = normal_distribution<float>(ghost.scatter_cycle_rounds, Arguments::cycle_rounds_stdev);
-                                ghost.n_rounds_left_behaviour =  max(1, (int) distribution(generator));
-                                ghost.behaviour = Ghost_Behaviour::SCATTER;
-                                ghost.scatter_cycle_rounds /= Arguments::scatter_cycle_factor;
-                                ghost.scatter_pos = state.random_valid_pos();
-                            }
+                        if (ghost.scatter_cycle_rounds >= 1) {
+                            distribution = normal_distribution<float>(ghost.scatter_cycle_rounds, Arguments::cycle_rounds_stdev);
+                            ghost.behaviour = Ghost_Behaviour::SCATTER;
+                            ghost.scatter_cycle_rounds /= Arguments::scatter_cycle_factor;
+                            ghost.scatter_pos = state.random_valid_pos();
+                        }
                         break;
                     default: ensure(false, "Invalid ghost behaviour");
                 }
+
+                ghost.n_rounds_left_behaviour = max(1, (int) distribution(generator));
             }
-            else if (ghost.behaviour == SCATTER) {
+
+            if (ghost.behaviour == SCATTER) {
                 while (ghost.scatter_pos == ghost.pos) ghost.scatter_pos = state.random_valid_pos();
             }
         }
@@ -83,7 +85,7 @@ private:
 
 public:
 
-    Game(Agent* pacman) : loaded_maze(false), pacman(pacman), game_over(false) {}
+    Game(Agent* pacman) : loaded_maze(false), game_over(false), pacman(pacman) {}
 
     void load_maze() {
         loaded_maze = true;
@@ -118,8 +120,6 @@ public:
             }
         }
 
-        //cout << state << endl;
-
         initialState = state;
     }
 
@@ -131,7 +131,9 @@ public:
     GameResult& play() {
         ensure(loaded_maze, "Try to play without a loaded maze");
 
-        while (state.n_powerpills_left + state.n_pills_left > 0) {
+        cout << state << endl;
+
+        while (state.n_powerpills_left + state.n_pills_left > 0) { // break if game_over
             cout.flush();
             usleep(100000);
 
@@ -155,7 +157,7 @@ public:
 
 
                     if (cell_content == State::WALL) {
-                        // TODO: Warn
+                        __log("Pacman crashes with wall");
                     }
                     else {
                         state.pacman.pos.move(pacman_direction);
@@ -174,7 +176,7 @@ public:
                                 state.maze[next_pos.i][next_pos.j] = State::FREE;
                                 --state.n_powerpills_left;
 
-                                for (Ghost_State& ghost : state.ghosts) ghost.scared = true;
+                                for (Ghost_State& ghost : state.ghosts) ghost.maybe_scared = true;
 
                                 state.n_rounds_powerpill = Arguments::n_rounds_powerpill;
                                 break;
@@ -189,10 +191,10 @@ public:
                 state.pacman.dir = pacman_direction;
             }
 
-            for (uint i = 0; i < min(1 + state.round/4, (int) ghosts.size()); ++i) {
+            for (int i = 0; i < min(1 + state.round/4, (int) ghosts.size()); ++i) {
                 Ghost_State& ghost = state.ghosts[i];
 
-                if (ghost.n_rounds_revive == 0) {
+                if (ghost.is_alive()) {
                     Direction ghost_direction = ghosts[i]->take_action(state, i);
 
                     if (ghost_direction == ghost.dir) {
@@ -205,7 +207,7 @@ public:
                             char cell_content = state.maze[next_pos.i][next_pos.j];
 
                             if (cell_content == State::WALL) {
-                                // TODO: WARN
+                                __log("Ghost #%d at [%d,%d] crashes with wall", i, ghost.pos.i, ghost.pos.j);
                             }
                             else {
                                 ghost.pos.move(ghost_direction);
@@ -236,7 +238,7 @@ public:
         end:
 
         cout << state << endl;
-        cout << game_over << endl;
+        cout << (game_over ? "LOST" : "WON") << endl;
 
         this->result.state = this->state;
         this->result.won = not game_over;

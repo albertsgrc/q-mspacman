@@ -7,7 +7,7 @@ class Direction {
 public:
     int i, j;
 
-    static Direction LEFT, RIGHT, UP, DOWN;
+    static Direction STAY, LEFT, RIGHT, UP, DOWN;
     const static int NUMBER = 4;
     static Direction LIST[NUMBER];
 
@@ -21,18 +21,10 @@ public:
         i = d.i; j = d.j;
     }
 
-    inline Direction opposite() {
+    inline Direction opposite() const {
         return Direction(-this->i, -this->j);
     }
 
-
-    inline bool operator==(const Direction& d) {
-        return i == d.i and j == d.j;
-    }
-
-    inline bool operator!=(const Direction& d) {
-        return not (*this == d);
-    }
 
     static inline Direction random() {
         return LIST[randint(NUMBER)];
@@ -42,6 +34,12 @@ public:
 inline bool operator!=(const Direction& a, const Direction& b) {
     return a.i != b.i or a.j != b.j;
 }
+
+inline bool operator==(const Direction& a, const Direction& b) {
+    return not (a != b);
+}
+
+Direction Direction::STAY = Direction(0, 0);
 
 Direction Direction::LEFT = Direction(0, -1);
 Direction Direction::RIGHT = Direction(0, +1);

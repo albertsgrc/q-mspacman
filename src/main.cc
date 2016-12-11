@@ -7,11 +7,7 @@
 #include "game.hh"
 #include "agent.hh"
 #include "pacman_agent.hh"
-
-
-void printResult(const GameResult& result) {
-
-}
+#include "input_agent.hh"
 
 int main(int argc, char* argv[]) {
     srand(time(NULL));
@@ -19,9 +15,9 @@ int main(int argc, char* argv[]) {
     Arguments::init(argc, argv);
     Arguments::postprocess();
 
-    Agent* pacmanAI = new Pacman_Agent();
+    Agent* pacman_ai = new Input_Agent();
 
-    Game game(pacmanAI);
+    Game game(pacman_ai);
 
     game.load_maze();
 

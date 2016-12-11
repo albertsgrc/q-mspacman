@@ -3,23 +3,37 @@
 
 #include "agent.hh"
 #include "direction.hh"
+#include "bfs.hh"
+#include "wsp.hh"
+#include <cmath>
 
 class Pacman_Agent: public Agent {
     // In this case ghost_id can be ignored
     Direction take_action(const State& s, uint ghost_id) { 
-        vector<Direction> valid_dirs;
-
-        for (const Direction& d : Direction::LIST) {
-            Position dest = s.pacman.pos.move_destination(d);
-
-            if (s.ghost_in_position(dest) == -1 and s.valid_to_move(dest)) {
-                if (s.has_any_pill(dest)) return d;
-                else valid_dirs.push_back(d);
+        if (s.n_rounds_powerpill > 0) {
+            for (const Ghost_State& ghost : s.ghosts) {
+                if (ghost.maybe_scared)
+                    return bfs(s.pacman.pos,
+                               [s](const Position& pos) { return s.scared_ghost_in_position(pos); },
+                               s).dir;
             }
 
+            return bfs(s.pacman.pos,
+                        [s](const Position& pos) { return s.has_any_pill(pos); },
+                       s).dir;
         }
-
-        return valid_dirs.size() > 0 ? valid_dirs[randint(valid_dirs.size())] : Direction::random();
+        else {
+            if (s.distance_closest_harmful_ghost(s.pacman.pos) < 10) {
+                return wsp(s.pacman.pos,
+                           [s](const Position& pos) { return s.has_any_pill(pos); },
+                           s,
+                           [s](const Position& pos) { return 100*s.ghost_in_position(pos); }
+                       ).dir;
+            }
+            else return bfs(s.pacman.pos,
+                     [s](const Position& pos) { return s.has_any_pill(pos); },
+                     s).dir;
+        }
     }
 };
 

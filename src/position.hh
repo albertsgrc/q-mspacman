@@ -25,14 +25,6 @@ struct Position {
         i = position.i; j = position.j;
     }
 
-    inline bool operator==(const Position& pos) {
-        return i == pos.i and j == pos.j;
-    }
-
-    inline bool operator!=(const Position& pos) {
-        return not operator==(pos);
-    }
-
     inline int manhattan(const Position& p) const {
         return abs(p.i - i) + abs(p.j - j);
     }

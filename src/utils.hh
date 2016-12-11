@@ -157,7 +157,7 @@ bool between(T x, T l, T r) {
 
 #if DEV
 #define ensure(condition, ...) {\
-	if (not condition) {\
+	if (not (condition)) {\
 		char str[200];\
     	sprintf(str, __VA_ARGS__);\
     	std::cout << "Error[" << __FILE__ << "][" << __FUNCTION__ << "][Line " << __LINE__ << "] " << str << std::endl;\

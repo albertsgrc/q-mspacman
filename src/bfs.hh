@@ -1,9 +1,9 @@
 //
-// Created by Albert Segarra Roca on 5/12/16.
+// Created by Albert Segarra Roca on 9/12/16.
 //
 
-#ifndef PATHFINDING_A_STAR_HH
-#define PATHFINDING_A_STAR_HH
+#ifndef BFS_HH
+#define BFS_HH
 
 #include <functional>
 #include <vector>
@@ -15,14 +15,10 @@
 #include "pathfinding.hh"
 using namespace std;
 
-PathResult AStar(Position start, Position end, const State& state) {
-    if (start == end) return PathResult(Direction::STAY);
+PathResult bfs(const Position& start, function<bool(const Position&)> reached_end, const State& state) {
+    if (reached_end(start)) return PathResult(Direction::STAY);
 
-    auto comp = [end](const PathStep& a, const PathStep& b) {
-        return a.pos.manhattan(end) > b.pos.manhattan(end);
-    };
-
-    priority_queue<PathStep, vector<PathStep>, decltype(comp)> Q(comp);
+    queue<PathStep> Q;
     vector<vector<bool>> S(state.maze.rows(), vector<bool>(state.maze.cols(), false));
 
     for (const Direction& dir : Direction::LIST) {
@@ -33,8 +29,8 @@ PathResult AStar(Position start, Position end, const State& state) {
             S[dest.i][dest.j] = true;
     }   }
 
-    while (not Q.empty() and Q.top().pos != end) {
-        PathStep current = Q.top(); Q.pop();
+    while (not Q.empty() and not reached_end(Q.front().pos)) {
+        PathStep current = Q.front(); Q.pop();
 
         for (const Direction& dir : Direction::LIST) {
             Position dest = current.pos.move_destination(dir);
@@ -44,7 +40,8 @@ PathResult AStar(Position start, Position end, const State& state) {
                 S[dest.i][dest.j] = true;
     }   }   }
 
-    return Q.empty() ? PathResult(false) : PathResult(Q.top().initial);
+    return Q.empty() ? PathResult(false) : PathResult(Q.front().initial);
 }
 
-#endif //PATHFINDING_A_STAR_HH
+
+#endif //SRC_BFS_HH

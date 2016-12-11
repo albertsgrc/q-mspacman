@@ -12,7 +12,7 @@ const string DFL_LAYOUT_PATH = LAYOUT_FOLDER + "originalClassic.lay";
 
 const float DFL_PACMAN_SPEED = 0.5;
 const float DFL_GHOST_SPEED = 0.8; // Relative to pacman
-const float DFL_GHOST_AFRAID_SPEED_FRACTION = 0.8; // Relative to their current speed
+const float DFL_GHOST_AFRAID_SPEED_FRACTION = 0.55; // Relative to their current speed
 
 // The duration in rounds of a scatter mode cycle will be divided
 // by this factor at the end of every cycle
@@ -27,6 +27,8 @@ const int DFL_INITIAL_SCATTER_CYCLE_ROUNDS = 30;
 // Same for chase cycle
 const int DFL_INITIAL_CHASE_CYCLE_ROUNDS = 30;
 
+// Standard deviation of the normal distribution used to decide the number
+// of ghost mode cycles when there is a change in the mode
 const float DFL_CYCLE_ROUNDS_STDEV = 1;
 
 const int DFL_N_ROUNDS_POWERPILL = 25;
@@ -138,6 +140,9 @@ void Arguments::postprocess() {
 
     Arguments::initial_chase_cycle_rounds /= Arguments::pacman_speed;
     Arguments::initial_scatter_cycle_rounds /= Arguments::pacman_speed;
+    Arguments::cycle_rounds_stdev /= Arguments::pacman_speed;
+    Arguments::n_rounds_ghost_revive /= Arguments::pacman_speed;
+    Arguments::n_rounds_powerpill /= Arguments::pacman_speed;
 }
 
 #endif

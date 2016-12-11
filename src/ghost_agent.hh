@@ -18,30 +18,24 @@ public:
     Direction take_action(const State& s, uint ghost_id) {
         const Ghost_State& ghost = s.ghosts[ghost_id];
 
-        if (ghost.scared and s.n_rounds_powerpill > 0) {
-            Direction pacman_dir = AStar(ghost.pos, s.pacman.pos, s).dir;
-            Direction opposite = pacman_dir.opposite();
-            if (s.valid_to_move(ghost.pos.move_destination((opposite))))
-                return opposite;
-            else {
-                for (const Direction& d : Direction::LIST) {
-                    if (d != opposite and d != pacman_dir and s.valid_to_move(ghost.pos.move_destination(d))) {
-                        return d;
-                    }
-                }
-
-                return pacman_dir;
-            }
+        if (s.is_scared(ghost)) {
+            return s.try_to_avoid(ghost.pos, AStar(ghost.pos, s.pacman.pos, s).dir);
         }
         else {
+            PathResult pr;
+
             switch(ghost.behaviour) {
                 case SCATTER:
-                    return AStar(ghost.pos, ghost.scatter_pos, s).dir;
+                    pr = AStar(ghost.pos, ghost.scatter_pos, s); break;
                 case CHASE:
-                    return AStar(ghost.pos, s.pacman.pos, s).dir;
+                    pr = AStar(ghost.pos, s.pacman.pos, s); break;
                 default:
                     ensure(false, "Invalid ghost behaviour enum");
             }
+
+            ensure(pr.found, "Path not found!");
+            if (pr.dir == Direction::STAY) __log("No movement for ghost #%d!", ghost_id);
+            return pr.dir;
         }
     }
 };
