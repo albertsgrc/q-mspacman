@@ -19,16 +19,16 @@ public:
         const Ghost_State& ghost = s.ghosts[ghost_id];
 
         if (s.is_scared(ghost)) {
-            return s.try_to_avoid(ghost.pos, AStar(ghost.pos, s.pacman.pos, s).dir);
+            return s.try_to_avoid(ghost.pos, a_star(ghost.pos, s.pacman.pos, s).dir);
         }
         else {
             PathResult pr;
 
             switch(ghost.behaviour) {
                 case SCATTER:
-                    pr = AStar(ghost.pos, ghost.scatter_pos, s); break;
+                    pr = a_star(ghost.pos, ghost.scatter_pos, s); break;
                 case CHASE:
-                    pr = AStar(ghost.pos, s.pacman.pos, s); break;
+                    pr = a_star(ghost.pos, s.pacman.pos, s); break;
                 default:
                     ensure(false, "Invalid ghost behaviour enum");
             }

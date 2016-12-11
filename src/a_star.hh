@@ -15,7 +15,7 @@
 #include "pathfinding.hh"
 using namespace std;
 
-PathResult AStar(Position start, Position end, const State& state) {
+PathResult a_star(Position start, Position end, const State &state) {
     if (start == end) return PathResult(Direction::STAY);
 
     auto comp = [end](const PathStep& a, const PathStep& b) {
