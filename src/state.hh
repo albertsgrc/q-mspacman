@@ -66,13 +66,15 @@ struct State {
         return o;
     }
 
-    inline int ghost_in_position(const Position& pos) const {
+    inline vector<int> ghosts_in_position(const Position& pos) const {
+        vector<int> ghosts_pos;
+
         for (uint i = 0; i < ghosts.size(); ++i) {
-            if (ghosts[i].pos.i == pos.i and ghosts[i].pos.j == pos.j and
-                    ghosts[i].n_rounds_revive == 0) return i;
+            if (ghosts[i].pos.i == pos.i and ghosts[i].pos.j == pos.j)
+                ghosts_pos.push_back(i);
         }
 
-        return -1;
+        return ghosts_pos;
     }
 
     inline bool scared_ghost_in_position(const Position& pos) const {

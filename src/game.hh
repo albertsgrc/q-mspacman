@@ -40,11 +40,10 @@ private:
     }
 
     bool game_over_on_collision(Ghost_State& ghost) {
-        if (not ghost.is_alive()) return false;
-
         if (state.is_scared(ghost)) {
             ghost.maybe_scared = false;
             ghost.n_rounds_revive = Arguments::n_rounds_ghost_revive;
+            ghost.pos = Position(-1,-1);
         }
         else game_over = true;
 
@@ -162,10 +161,11 @@ public:
                     else {
                         state.pacman.pos.move(pacman_direction);
 
-                        int ghost_id = state.ghost_in_position(next_pos);
+                        vector<int> ghosts_pos = state.ghosts_in_position(next_pos);
 
-                        if (ghost_id != -1 and game_over_on_collision(state.ghosts[ghost_id]))
-                            goto end;
+                        for (int ghost_id : ghosts_pos)
+                            if (game_over_on_collision(state.ghosts[ghost_id]))
+                                goto end;
 
                         switch(cell_content) {
                             case State::PILL:

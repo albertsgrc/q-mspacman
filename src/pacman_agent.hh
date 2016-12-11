@@ -27,7 +27,7 @@ class Pacman_Agent: public Agent {
                 return wsp(s.pacman.pos,
                            [s](const Position& pos) { return s.has_any_pill(pos); },
                            s,
-                           [s](const Position& pos) { return 100*s.ghost_in_position(pos); }
+                           [s](const Position& pos) { return 100*s.ghosts_in_position(pos).size(); }
                        ).dir;
             }
             else return bfs(s.pacman.pos,
