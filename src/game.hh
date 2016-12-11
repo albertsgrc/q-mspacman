@@ -23,6 +23,7 @@ struct GameResult {
 class Game {
 private:
     GameResult result;
+
     State initialState;
     State state;
 
@@ -134,7 +135,7 @@ public:
 
         while (state.n_powerpills_left + state.n_pills_left > 0) { // break if game_over
             cout.flush();
-            usleep(100000);
+            usleep(70000);
 
             update_ghost_states();
 

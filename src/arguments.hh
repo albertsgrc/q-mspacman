@@ -5,6 +5,10 @@
 #include "utils.hh"
 using namespace std;
 
+enum Pacman_AI_Agent {
+    PATHFINDING, INPUT
+};
+
 const string LAYOUT_FOLDER = "./layouts/";
 
 // ## DEFAULT VALUES ##
@@ -13,6 +17,8 @@ const string LAYOUT_FOLDER = "./layouts/";
 // for pacman to move one cell, which is not the same as an actual game round
 
 const string DFL_LAYOUT_PATH = LAYOUT_FOLDER + "originalClassic.lay";
+
+const Pacman_AI_Agent DFL_PACMAN_AI_AGENT = PATHFINDING;
 
 const float DFL_PACMAN_SPEED = 0.5;
 const float DFL_GHOST_SPEED = 0.8; // Relative to pacman
@@ -26,16 +32,16 @@ const float DFL_SCATTER_CYCLE_FACTOR = 1.05;
 const float DFL_CHASE_CYCLE_FACTOR = 1.1;
 // Initial duration of a scatter cycle in rounds.
 
-const int DFL_INITIAL_SCATTER_CYCLE_ROUNDS = 30;
+const int DFL_INITIAL_SCATTER_CYCLE_ROUNDS = 35;
 // Same for chase cycle
 const int DFL_INITIAL_CHASE_CYCLE_ROUNDS = 30;
 
 // Standard deviation of the normal distribution used to decide the number
 // of ghost mode cycles when there is a change in the mode
-const float DFL_CYCLE_ROUNDS_STDEV = 1;
+const float DFL_CYCLE_ROUNDS_STDEV = 7;
 
-const int DFL_N_ROUNDS_POWERPILL = 25;
-const int DFL_N_ROUNDS_GHOST_REVIVE = 7;
+const int DFL_N_ROUNDS_POWERPILL = 35;
+const int DFL_N_ROUNDS_GHOST_REVIVE = 10;
 
 // For a value of X, ghost #0 will start moving at round 1, ghost #1 will start
 // at round X, ghost #2 will start at round 2*X, ghost #3 will start at round 3*X,
@@ -68,6 +74,7 @@ public:
     static int initial_chase_cycle_rounds;
     static float cycle_rounds_stdev;
     static int n_rounds_between_ghosts_start;
+    static Pacman_AI_Agent pacman_ai_agent;
 
     static void init(int argc, char* argv[]);
 
@@ -92,6 +99,7 @@ int Arguments::initial_scatter_cycle_rounds;
 int Arguments::initial_chase_cycle_rounds;
 float Arguments::cycle_rounds_stdev;
 int Arguments::n_rounds_between_ghosts_start;
+Pacman_AI_Agent Arguments::pacman_ai_agent;
 
 void Arguments::init(int argc, char* argv[]) {
     Arguments::layout_path = DFL_LAYOUT_PATH;
@@ -106,6 +114,7 @@ void Arguments::init(int argc, char* argv[]) {
     Arguments::initial_chase_cycle_rounds = DFL_INITIAL_CHASE_CYCLE_ROUNDS;
     Arguments::cycle_rounds_stdev = DFL_CYCLE_ROUNDS_STDEV;
     Arguments::n_rounds_between_ghosts_start = DFL_N_ROUNDS_BETWEEN_GHOSTS_START;
+    Arguments::pacman_ai_agent = DFL_PACMAN_AI_AGENT;
 
     for (int i = 1; i < argc; ++i) treat_arg(argv[i]);
 }
@@ -123,6 +132,11 @@ void Arguments::assign_argument(const string& key, const string& value) {
     else if (key == "initial_chase_cycle_rounds") Arguments::initial_chase_cycle_rounds = stoi(value);
     else if (key == "cycle_rounds_stdev") Arguments::cycle_rounds_stdev = stof(value);
     else if (key == "n_rounds_between_ghosts_start") Arguments::n_rounds_between_ghosts_start = stoi(value);
+    else if (key == "pacman_ai_agent") {
+        if (value == "pathfinding") Arguments::pacman_ai_agent = PATHFINDING;
+        else if (value == "input") Arguments::pacman_ai_agent = INPUT;
+        else error("Invalid pacman AI agent name '" + value + "'");
+    }
     else error("Invalid argument name '" + key + "'");
 }
 

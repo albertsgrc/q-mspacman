@@ -15,6 +15,9 @@ struct State {
     static const uchar WALL = '%';
 
     // Contains the current state of the maze
+    // NOTE THAT PACMAN AND GHOSTS ARE **NOT** HERE
+    // Instead, their positions are encoded as a Position member
+    // in their state instances
     Matrix<char> maze;
 
     // Contains a list of all valid positions in the board

@@ -20,6 +20,7 @@ PathResult bfs(const Position& start, function<bool(const Position&)> reached_en
 
     queue<PathStep> Q;
     vector<vector<bool>> S(state.maze.rows(), vector<bool>(state.maze.cols(), false));
+    S[start.i][start.j] = true;
 
     for (const Direction& dir : Direction::LIST) {
         Position dest = start.move_destination(dir);

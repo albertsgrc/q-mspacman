@@ -4,7 +4,7 @@
 #include "direction.hh"
 #include "agent.hh"
 #include "utils.hh"
-#include "a_star.hh"
+#include "best_first.hh"
 #include "position.hh"
 
 class Ghost_Agent: public Agent {
@@ -19,16 +19,16 @@ public:
         const Ghost_State& ghost = s.ghosts[ghost_id];
 
         if (s.is_scared(ghost)) {
-            return s.try_to_avoid(ghost.pos, a_star(ghost.pos, s.pacman.pos, s).dir);
+            return s.try_to_avoid(ghost.pos, best_first(ghost.pos, s.pacman.pos, s).dir);
         }
         else {
             PathResult pr;
 
             switch(ghost.behaviour) {
                 case SCATTER:
-                    pr = a_star(ghost.pos, ghost.scatter_pos, s); break;
+                    pr = best_first(ghost.pos, ghost.scatter_pos, s); break;
                 case CHASE:
-                    pr = a_star(ghost.pos, s.pacman.pos, s); break;
+                    pr = best_first(ghost.pos, s.pacman.pos, s); break;
                 default:
                     ensure(false, "Invalid ghost behaviour enum");
             }

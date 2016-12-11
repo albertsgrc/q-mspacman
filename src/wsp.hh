@@ -27,7 +27,7 @@ PathResult wsp(const Position& start,
 
     priority_queue<CostPathStep, vector<CostPathStep>, decltype(comp)> Q(comp);
     vector<vector<bool>> S(state.maze.rows(), vector<bool>(state.maze.cols(), false));
-    vector<vector<int>> C(state.maze.rows(), vector<int>(state.maze.cols(), false));
+    vector<vector<int>> C(state.maze.rows(), vector<int>(state.maze.cols(), MAXINT));
 
     S[start.i][start.j] = true;
 

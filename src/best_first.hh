@@ -2,8 +2,8 @@
 // Created by Albert Segarra Roca on 5/12/16.
 //
 
-#ifndef PATHFINDING_A_STAR_HH
-#define PATHFINDING_A_STAR_HH
+#ifndef PATHFINDING_BEST_FIRST_HH
+#define PATHFINDING_BEST_FIRST_HH
 
 #include <functional>
 #include <vector>
@@ -15,7 +15,7 @@
 #include "pathfinding.hh"
 using namespace std;
 
-PathResult a_star(Position start, Position end, const State &state) {
+PathResult best_first(Position start, Position end, const State &state) {
     if (start == end) return PathResult(Direction::STAY);
 
     auto comp = [end](const PathStep& a, const PathStep& b) {
@@ -47,4 +47,4 @@ PathResult a_star(Position start, Position end, const State &state) {
     return Q.empty() ? PathResult(false) : PathResult(Q.top().initial);
 }
 
-#endif //PATHFINDING_A_STAR_HH
+#endif //PATHFINDING_BEST_FIRST_HH
