@@ -90,7 +90,7 @@ public:
 
     bool game_over;
 
-    Game(Agent* pacman) : pacman(pacman), generator(time(0)),
+    Game(Agent* pacman) : pacman(pacman), generator(Arguments::random_seed),
                           loaded_maze(false), game_over(false) {}
 
     void load_maze() {

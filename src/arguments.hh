@@ -50,6 +50,8 @@ const int DFL_N_ROUNDS_BETWEEN_GHOSTS_START = 4;
 
 const int DFL_PLAYS = 1;
 
+const size_t DFL_RANDOM_SEED = time(0);
+
 /*
     Steps to add a new argument with name "argument"
 
@@ -78,6 +80,7 @@ public:
     static int n_rounds_between_ghosts_start;
     static Pacman_AI_Agent pacman_ai_agent;
     static int plays;
+    static uint random_seed;
 
     static void init(int argc, char* argv[]);
 
@@ -104,6 +107,7 @@ float Arguments::cycle_rounds_stdev;
 int Arguments::n_rounds_between_ghosts_start;
 Pacman_AI_Agent Arguments::pacman_ai_agent;
 int Arguments::plays;
+uint Arguments::random_seed;
 
 void Arguments::init(int argc, char* argv[]) {
     Arguments::layout_path = DFL_LAYOUT_PATH;
@@ -120,6 +124,7 @@ void Arguments::init(int argc, char* argv[]) {
     Arguments::n_rounds_between_ghosts_start = DFL_N_ROUNDS_BETWEEN_GHOSTS_START;
     Arguments::pacman_ai_agent = DFL_PACMAN_AI_AGENT;
     Arguments::plays = DFL_PLAYS;
+    Arguments::random_seed = DFL_RANDOM_SEED;
 
     for (int i = 1; i < argc; ++i) treat_arg(argv[i]);
 }
@@ -143,6 +148,10 @@ void Arguments::assign_argument(const string& key, const string& value) {
         else error("Invalid pacman AI agent name '" + value + "'");
     }
     else if (key == "plays") Arguments::plays = stoi(value);
+    else if (key == "random_seed") {
+        if (value == "time") Arguments::random_seed = time(0);
+        else Arguments::random_seed = stoul(value);
+    }
     else error("Invalid argument name '" + key + "'");
 }
 

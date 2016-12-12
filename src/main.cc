@@ -10,10 +10,10 @@
 #include "input_pacman_agent.hh"
 
 int main(int argc, char* argv[]) {
-    srand(time(NULL));
-
     Arguments::init(argc, argv);
     Arguments::postprocess();
+
+    srand(Arguments::random_seed);
 
     Agent* pacman_ai;
 
