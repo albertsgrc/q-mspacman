@@ -14,7 +14,7 @@ class Pathfinding_Pacman_Agent: public Agent {
             return wsp(s.pacman.pos,
                        [s](const Position& pos) { return s.has_any_pill(pos); },
                        s,
-                       [s](const Position& pos) { return 10*pow(2, (10 - s.distance_closest_harmful_ghost(pos))); }
+                       [s](const Position& pos) { return 10*pow(2, 10 - min(10,s.distance_closest_harmful_ghost(pos))); }
                    ).dir;
         }
         else return bfs(s.pacman.pos,

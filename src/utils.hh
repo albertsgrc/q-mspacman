@@ -138,7 +138,7 @@ bool between(T x, T l, T r) {
 #define foreach(it, c) for (__typeof((c).begin()) it=(c).begin(); it != (c).end(); ++it)
 
 #ifndef DEBUG
-#define DEBUG 1 // set debug mode
+#define DEBUG 0 // set debug mode
 #endif
 
 #if DEBUG

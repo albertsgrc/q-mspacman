@@ -26,19 +26,19 @@ const float DFL_GHOST_AFRAID_SPEED_FRACTION = 0.55; // Relative to their current
 
 // The duration in rounds of a scatter mode cycle will be divided
 // by this factor at the end of every cycle
-const float DFL_SCATTER_CYCLE_FACTOR = 1.05;
+const float DFL_SCATTER_CYCLE_FACTOR = 1.2;
 // The duration in rounds of a chase mode cycle will be multiplied
 // by this factor at the end of every cycle
-const float DFL_CHASE_CYCLE_FACTOR = 1.1;
+const float DFL_CHASE_CYCLE_FACTOR = 1.2;
 // Initial duration of a scatter cycle in rounds.
 
-const int DFL_INITIAL_SCATTER_CYCLE_ROUNDS = 35;
+const int DFL_INITIAL_SCATTER_CYCLE_ROUNDS = 30;
 // Same for chase cycle
 const int DFL_INITIAL_CHASE_CYCLE_ROUNDS = 30;
 
 // Standard deviation of the normal distribution used to decide the number
 // of ghost mode cycles when there is a change in the mode
-const float DFL_CYCLE_ROUNDS_STDEV = 7;
+const float DFL_CYCLE_ROUNDS_STDEV = 4;
 
 const int DFL_N_ROUNDS_POWERPILL = 35;
 const int DFL_N_ROUNDS_GHOST_REVIVE = 10;

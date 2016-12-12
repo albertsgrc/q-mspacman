@@ -19,7 +19,8 @@ PathResult bfs(const Position& start, function<bool(const Position&)> reached_en
     if (reached_end(start)) return PathResult(Direction::STAY);
 
     queue<PathStep> Q;
-    vector<vector<bool>> S(state.maze.rows(), vector<bool>(state.maze.cols(), false));
+    SeenMatrix::reset();
+    vector<vector<bool>>& S = SeenMatrix::S;
     S[start.i][start.j] = true;
 
     for (const Direction& dir : Direction::LIST) {

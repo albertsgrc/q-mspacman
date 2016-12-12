@@ -5,6 +5,7 @@
 #include <sstream>
 #include <unistd.h>
 #include <random>
+#include <vector>
 
 #include "agent.hh"
 #include "arguments.hh"
@@ -12,6 +13,7 @@
 #include "position.hh"
 #include "ghost_agent.hh"
 #include "state.hh"
+#include "pathfinding.hh"
 
 struct GameResult {
     GameResult() {}
@@ -22,17 +24,10 @@ struct GameResult {
 
 class Game {
 private:
-    GameResult result;
-
-    State initialState;
-    State state;
-
-    bool loaded_maze;
-
-    bool game_over;
 
     Agent* pacman;
     vector<Agent*> ghosts;
+    default_random_engine generator;
 
     float ghost_speed(int ghost_id) {
         return state.is_scared(state.ghosts[ghost_id]) ?
@@ -54,7 +49,6 @@ private:
     void update_ghost_states() {
         for (Ghost_State& ghost : state.ghosts) {
             if (ghost.n_rounds_left_behaviour-- == 0) {
-                default_random_engine generator;
                 normal_distribution<float> distribution;
 
                 switch (ghost.behaviour) {
@@ -75,6 +69,9 @@ private:
                 }
 
                 ghost.n_rounds_left_behaviour = max(1, (int) distribution(generator));
+                __log("Ghost at position [%d,%d] changes behaviour to %s, %d rounds",
+                      ghost.pos.i, ghost.pos.j, ghost.behaviour == Ghost_Behaviour::SCATTER ? "scatter" : "chase",
+                      (int) (Arguments::pacman_speed*ghost.n_rounds_left_behaviour));
             }
 
             if (ghost.behaviour == SCATTER) {
@@ -84,8 +81,17 @@ private:
     }
 
 public:
+    GameResult result;
 
-    Game(Agent* pacman) : loaded_maze(false), game_over(false), pacman(pacman) {}
+    State initialState;
+    State state;
+
+    bool loaded_maze;
+
+    bool game_over;
+
+    Game(Agent* pacman) : loaded_maze(false), game_over(false), pacman(pacman),
+                          generator(time(0)) {}
 
     void load_maze() {
         loaded_maze = true;
@@ -99,6 +105,8 @@ public:
         int rows, cols;
         layout_file >> rows >> cols;
         state.maze = Matrix<char>(rows, cols);
+        uint valid_index = 0;
+        PathMagic::index_from_pos = vector<vector<int>>(rows, vector<int>(cols, -1));
 
         layout_file >> std::noskipws;
         for (int i = 0; i < rows; ++i) {
@@ -110,7 +118,10 @@ public:
                 state.n_pills_left += cell == State::PILL;
                 state.n_powerpills_left += cell == State::POWER_PILL;
 
-                if (cell != State::WALL) state.valid_positions.push_back(Position(i, j));
+                if (cell != State::WALL) {
+                    state.valid_positions.push_back(Position(i, j));
+                    PathMagic::index_from_pos[i][j] = valid_index++;
+                }
 
                 if (cell == State::PACMAN) state.pacman = Agent_State(Position(i, j), Direction::UP);
                 else if (cell == State::GHOST) {
@@ -120,12 +131,16 @@ public:
             }
         }
 
+        SeenMatrix::init(rows, cols);
+        PathMagic::compute(state);
+
         initialState = state;
     }
 
     void reset() {
         ensure(loaded_maze, "Try to reset without a loaded maze");
         state = initialState;
+        game_over = false;
     }
 
     GameResult& play() {

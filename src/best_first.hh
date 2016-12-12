@@ -23,7 +23,8 @@ PathResult best_first(Position start, Position end, const State &state) {
     };
 
     priority_queue<PathStep, vector<PathStep>, decltype(comp)> Q(comp);
-    vector<vector<bool>> S(state.maze.rows(), vector<bool>(state.maze.cols(), false));
+    SeenMatrix::reset();
+    vector<vector<bool>>& S = SeenMatrix::S;
 
     for (const Direction& dir : Direction::LIST) {
         Position dest = start.move_destination(dir);

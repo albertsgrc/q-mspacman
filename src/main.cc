@@ -9,6 +9,8 @@
 #include "pathfinding_pacman_agent.hh"
 #include "input_pacman_agent.hh"
 
+const int PLAYS = 1;
+
 int main(int argc, char* argv[]) {
     srand(time(NULL));
 
@@ -27,5 +29,19 @@ int main(int argc, char* argv[]) {
 
     game.load_maze();
 
-    game.play();
+    uint won = 0;
+    uint total_pills = game.state.n_pills_left + game.state.n_powerpills_left;
+    uint pills_left = 0;
+
+    for (int i = 0; i < PLAYS; ++i) {
+        game.play();
+        won += game.result.won;
+        pills_left += game.state.n_pills_left + game.state.n_powerpills_left;
+        cout << i << endl;
+        game.reset();
+    }
+
+    cout << "Number of wins: " << won << endl
+         << "Percentage of wins: " << 100*won/double(PLAYS) << '%' << endl
+         << "Percentage of level completion: " << 100*(total_pills - pills_left/double(PLAYS))/total_pills << '%' << endl;
 }

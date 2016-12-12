@@ -6,6 +6,7 @@
 #include "utils.hh"
 #include "best_first.hh"
 #include "position.hh"
+#include "pathfinding.hh"
 
 class Ghost_Agent: public Agent {
 
@@ -19,23 +20,23 @@ public:
         const Ghost_State& ghost = s.ghosts[ghost_id];
 
         if (s.is_scared(ghost)) {
-            return s.try_to_avoid(ghost.pos, best_first(ghost.pos, s.pacman.pos, s).dir);
+            return s.try_to_avoid(ghost.pos, PathMagic::from_to(ghost.pos, s.pacman.pos));
         }
         else {
-            PathResult pr;
+            Direction d;
 
             switch(ghost.behaviour) {
                 case SCATTER:
-                    pr = best_first(ghost.pos, ghost.scatter_pos, s); break;
+                    d = PathMagic::from_to(ghost.pos, ghost.scatter_pos); break;
                 case CHASE:
-                    pr = best_first(ghost.pos, s.pacman.pos, s); break;
+                    d = PathMagic::from_to(ghost.pos, s.pacman.pos); break;
                 default:
                     ensure(false, "Invalid ghost behaviour enum");
             }
 
-            ensure(pr.found, "Path not found!");
-            if (pr.dir == Direction::STAY) __log("No movement for ghost #%d!", ghost_id);
-            return pr.dir;
+            //ensure(pr.found, "Path not found!");
+            if (d == Direction::STAY) __log("No movement for ghost #%d!", ghost_id);
+            return d;
         }
     }
 };
