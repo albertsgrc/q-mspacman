@@ -84,7 +84,7 @@ struct PathMagic {
 
         if (id_from == id_to) return Direction::STAY;
 
-        return Direction::LIST[direction_from_to[id_from][id_to]];
+        return Direction::LIST[(int)direction_from_to[id_from][id_to]];
     }
 
     static void compute(const State& s) {

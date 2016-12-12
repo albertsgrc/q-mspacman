@@ -90,8 +90,8 @@ public:
 
     bool game_over;
 
-    Game(Agent* pacman) : loaded_maze(false), game_over(false), pacman(pacman),
-                          generator(time(0)) {}
+    Game(Agent* pacman) : pacman(pacman), generator(time(0)),
+                          loaded_maze(false), game_over(false) {}
 
     void load_maze() {
         loaded_maze = true;
@@ -146,11 +146,13 @@ public:
     GameResult& play() {
         ensure(loaded_maze, "Try to play without a loaded maze");
 
-        cout << state << endl;
+        if (Arguments::plays == 1) cout << state << endl;
 
         while (state.n_powerpills_left + state.n_pills_left > 0) { // break if game_over
-            cout.flush();
-            usleep(70000);
+            if (Arguments::plays == 1) {
+                cout.flush();
+                usleep(70000);
+            }
 
             update_ghost_states();
 
@@ -248,13 +250,15 @@ public:
 
             }
 
-            cout << state << endl;
+            if (Arguments::plays == 1) cout << state << endl;
         }
 
         end:
 
-        cout << state << endl;
-        cout << (game_over ? "LOST" : "WON") << endl;
+        if (Arguments::plays == 1) {
+            cout << state << endl;
+            cout << (game_over ? "LOST" : "WON") << endl;
+        }
 
         this->result.state = this->state;
         this->result.won = not game_over;

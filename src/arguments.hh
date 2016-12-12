@@ -48,6 +48,8 @@ const int DFL_N_ROUNDS_GHOST_REVIVE = 10;
 // and so on. Note that round here also means the time it takes for pacman to move one cell
 const int DFL_N_ROUNDS_BETWEEN_GHOSTS_START = 4;
 
+const int DFL_PLAYS = 1;
+
 /*
     Steps to add a new argument with name "argument"
 
@@ -75,6 +77,7 @@ public:
     static float cycle_rounds_stdev;
     static int n_rounds_between_ghosts_start;
     static Pacman_AI_Agent pacman_ai_agent;
+    static int plays;
 
     static void init(int argc, char* argv[]);
 
@@ -100,6 +103,7 @@ int Arguments::initial_chase_cycle_rounds;
 float Arguments::cycle_rounds_stdev;
 int Arguments::n_rounds_between_ghosts_start;
 Pacman_AI_Agent Arguments::pacman_ai_agent;
+int Arguments::plays;
 
 void Arguments::init(int argc, char* argv[]) {
     Arguments::layout_path = DFL_LAYOUT_PATH;
@@ -115,6 +119,7 @@ void Arguments::init(int argc, char* argv[]) {
     Arguments::cycle_rounds_stdev = DFL_CYCLE_ROUNDS_STDEV;
     Arguments::n_rounds_between_ghosts_start = DFL_N_ROUNDS_BETWEEN_GHOSTS_START;
     Arguments::pacman_ai_agent = DFL_PACMAN_AI_AGENT;
+    Arguments::plays = DFL_PLAYS;
 
     for (int i = 1; i < argc; ++i) treat_arg(argv[i]);
 }
@@ -137,6 +142,7 @@ void Arguments::assign_argument(const string& key, const string& value) {
         else if (value == "input") Arguments::pacman_ai_agent = INPUT;
         else error("Invalid pacman AI agent name '" + value + "'");
     }
+    else if (key == "plays") Arguments::plays = stoi(value);
     else error("Invalid argument name '" + key + "'");
 }
 
