@@ -2,6 +2,7 @@
 #define ARGUMENTS_HH
 
 #include <string>
+#include <random>
 #include "utils.hh"
 using namespace std;
 
@@ -21,15 +22,15 @@ const string DFL_LAYOUT_PATH = LAYOUT_FOLDER + "originalClassic.lay";
 const Pacman_AI_Agent DFL_PACMAN_AI_AGENT = PATHFINDING;
 
 const float DFL_PACMAN_SPEED = 0.5;
-const float DFL_GHOST_SPEED = 0.8; // Relative to pacman
-const float DFL_GHOST_AFRAID_SPEED_FRACTION = 0.55; // Relative to their current speed
+const float DFL_GHOST_SPEED = 0.85; // Relative to pacman
+const float DFL_GHOST_AFRAID_SPEED_FRACTION = 0.65; // Relative to their current speed
 
 // The duration in rounds of a scatter mode cycle will be divided
 // by this factor at the end of every cycle
-const float DFL_SCATTER_CYCLE_FACTOR = 1.2;
+const float DFL_SCATTER_CYCLE_FACTOR = 1.03;
 // The duration in rounds of a chase mode cycle will be multiplied
 // by this factor at the end of every cycle
-const float DFL_CHASE_CYCLE_FACTOR = 1.2;
+const float DFL_CHASE_CYCLE_FACTOR = 1.1;
 // Initial duration of a scatter cycle in rounds.
 
 const int DFL_INITIAL_SCATTER_CYCLE_ROUNDS = 30;
@@ -81,6 +82,7 @@ public:
     static Pacman_AI_Agent pacman_ai_agent;
     static int plays;
     static uint random_seed;
+    static mt19937_64 random_generator;
 
     static void init(int argc, char* argv[]);
 
@@ -108,6 +110,7 @@ int Arguments::n_rounds_between_ghosts_start;
 Pacman_AI_Agent Arguments::pacman_ai_agent;
 int Arguments::plays;
 uint Arguments::random_seed;
+mt19937_64 Arguments::random_generator;
 
 void Arguments::init(int argc, char* argv[]) {
     Arguments::layout_path = DFL_LAYOUT_PATH;
@@ -185,6 +188,7 @@ void Arguments::postprocess() {
     Arguments::n_rounds_ghost_revive /= Arguments::pacman_speed;
     Arguments::n_rounds_powerpill /= Arguments::pacman_speed;
     Arguments::n_rounds_between_ghosts_start /= Arguments::pacman_speed;
+    Arguments::random_generator = mt19937_64(Arguments::random_seed);
 }
 
 #endif

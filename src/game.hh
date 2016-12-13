@@ -27,7 +27,6 @@ private:
 
     Agent* pacman;
     vector<Agent*> ghosts;
-    default_random_engine generator;
 
     float ghost_speed(int ghost_id) {
         return state.is_scared(state.ghosts[ghost_id]) ?
@@ -68,7 +67,7 @@ private:
                     default: ensure(false, "Invalid ghost behaviour");
                 }
 
-                ghost.n_rounds_left_behaviour = max(1, (int) distribution(generator));
+                ghost.n_rounds_left_behaviour = max(1, (int) distribution(Arguments::random_generator));
                 __log("Ghost at position [%d,%d] changes behaviour to %s, %d rounds",
                       ghost.pos.i, ghost.pos.j, ghost.behaviour == Ghost_Behaviour::SCATTER ? "scatter" : "chase",
                       (int) (Arguments::pacman_speed*ghost.n_rounds_left_behaviour));
@@ -90,8 +89,7 @@ public:
 
     bool game_over;
 
-    Game(Agent* pacman) : pacman(pacman), generator(Arguments::random_seed),
-                          loaded_maze(false), game_over(false) {}
+    Game(Agent* pacman) : pacman(pacman), loaded_maze(false), game_over(false) {}
 
     void load_maze() {
         loaded_maze = true;
@@ -141,6 +139,11 @@ public:
         ensure(loaded_maze, "Try to reset without a loaded maze");
         state = initialState;
         game_over = false;
+
+        for (uint i = 0; i < ghosts.size(); ++i) {
+            delete (Ghost_Agent*) ghosts[i];
+            ghosts[i] = (Agent*) new Ghost_Agent();
+        }
     }
 
     GameResult& play() {
@@ -151,7 +154,7 @@ public:
         while (state.n_powerpills_left + state.n_pills_left > 0) { // break if game_over
             if (Arguments::plays == 1) {
                 cout.flush();
-                usleep(70000);
+                usleep(160000*Arguments::ghost_speed);
             }
 
             update_ghost_states();

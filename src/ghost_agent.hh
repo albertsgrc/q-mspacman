@@ -10,34 +10,38 @@
 
 class Ghost_Agent: public Agent {
 
-    bool was_intersection;
-
 public:
+    Position prev;
 
-    Ghost_Agent() : was_intersection(false) {}
+    virtual ~Ghost_Agent() {}
 
     Direction take_action(const State& s, uint ghost_id) {
         const Ghost_State& ghost = s.ghosts[ghost_id];
 
-        if (s.is_scared(ghost)) {
-            return s.try_to_avoid(ghost.pos, PathMagic::from_to(ghost.pos, s.pacman.pos));
-        }
-        else {
-            Direction d;
+        if (ghost.pos != prev) {
+            prev = ghost.pos;
 
-            switch(ghost.behaviour) {
-                case SCATTER:
-                    d = PathMagic::from_to(ghost.pos, ghost.scatter_pos); break;
-                case CHASE:
-                    d = PathMagic::from_to(ghost.pos, s.pacman.pos); break;
-                default:
-                    ensure(false, "Invalid ghost behaviour enum");
+            if (s.is_scared(ghost)) {
+                return s.try_to_avoid(ghost.pos, PathMagic::from_to(ghost.pos, s.pacman.pos));
             }
+            else {
+                Direction d;
 
-            //ensure(pr.found, "Path not found!");
-            if (d == Direction::STAY) __log("No movement for ghost #%d!", ghost_id);
-            return d;
+                switch(ghost.behaviour) {
+                    case SCATTER:
+                        d = PathMagic::from_to(ghost.pos, ghost.scatter_pos); break;
+                    case CHASE:
+                        d = PathMagic::from_to(ghost.pos, s.pacman.pos); break;
+                    default:
+                    ensure(false, "Invalid ghost behaviour enum");
+                }
+
+                //ensure(pr.found, "Path not found!");
+                if (d == Direction::STAY) __log("No movement for ghost #%d!", ghost_id);
+                return d;
+            }
         }
+        else return ghost.dir;
     }
 };
 

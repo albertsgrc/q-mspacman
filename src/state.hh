@@ -21,7 +21,7 @@ struct State {
     Matrix<char> maze;
 
     // Contains a list of all valid positions in the board
-    vector<Position> valid_positions;
+    static vector<Position> valid_positions;
 
     int round;
 
@@ -40,15 +40,15 @@ struct State {
         round(0), n_rounds_powerpill(0), n_pills_left(0),
         n_powerpills_left(0) {}
 
-
     inline void operator=(const State& o) {
         maze = o.maze;
-        n_rounds_powerpill = o.n_rounds_powerpill;
+
         n_pills_left = o.n_pills_left;
         n_powerpills_left = o.n_powerpills_left;
         ghosts = o.ghosts;
         pacman = o.pacman;
-        valid_positions = o.valid_positions;
+        round = o.round;
+        n_rounds_powerpill = o.n_rounds_powerpill;
     }
 
     friend ostream& operator<<(ostream& o, const State& s) {
@@ -156,7 +156,9 @@ struct State {
 
         }
 
-        return valid_dirs[randint(valid_dirs.size())];
+        uniform_int_distribution<> distr(0, valid_dirs.size() - 1);
+
+        return valid_dirs[distr(Arguments::random_generator)];
     }
 
     inline Position random_valid_pos() const {
@@ -167,5 +169,7 @@ struct State {
         return n_rounds_powerpill > 0 and ghost.maybe_scared;
     }
 };
+
+vector<Position> State::valid_positions;
 
 #endif
