@@ -23,6 +23,8 @@ struct State {
     // Contains a list of all valid positions in the board
     static vector<Position> valid_positions;
 
+    uniform_int_distribution<> distribution_valid_pos;
+
     int round;
 
     // Number of power pill rounds left. 0 if no power pill in action
@@ -161,8 +163,8 @@ struct State {
         return valid_dirs[distr(Arguments::random_generator)];
     }
 
-    inline Position random_valid_pos() const {
-        return valid_positions[randint(valid_positions.size())];
+    inline Position random_valid_pos() {
+        return valid_positions[distribution_valid_pos(Arguments::random_generator)];
     }
 
     inline bool is_scared(const Ghost_State& ghost) const {

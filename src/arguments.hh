@@ -7,7 +7,7 @@
 using namespace std;
 
 enum Pacman_AI_Agent {
-    PATHFINDING, INPUT
+    PATHFINDING, INPUT, RANDOM
 };
 
 const string LAYOUT_FOLDER = "./layouts/";
@@ -148,6 +148,7 @@ void Arguments::assign_argument(const string& key, const string& value) {
     else if (key == "pacman_ai_agent") {
         if (value == "pathfinding") Arguments::pacman_ai_agent = PATHFINDING;
         else if (value == "input") Arguments::pacman_ai_agent = INPUT;
+        else if (value == "random") Arguments::pacman_ai_agent = RANDOM;
         else error("Invalid pacman AI agent name '" + value + "'");
     }
     else if (key == "plays") Arguments::plays = stoi(value);

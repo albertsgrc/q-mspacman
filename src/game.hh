@@ -129,6 +129,8 @@ public:
             }
         }
 
+        state.distribution_valid_pos = uniform_int_distribution<>(0, state.valid_positions.size() - 1);
+
         SeenMatrix::init(rows, cols);
         PathMagic::compute(state);
 
