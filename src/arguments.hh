@@ -14,6 +14,8 @@ const string LAYOUT_FOLDER = "./layouts/";
 
 // ## DEFAULT VALUES ##
 
+/** SIMULATION ARGUMENTS **/
+
 // Note that here a round is considered to be the time it takes
 // for pacman to move one cell, which is not the same as an actual game round
 
@@ -53,6 +55,15 @@ const int DFL_PLAYS = 1;
 
 const size_t DFL_RANDOM_SEED = time(0);
 
+/** NEURAL NETWORK ARGUMENTS **/
+
+const int DFL_N_HIDDEN_LAYERS = 1;
+const int DFL_N_HIDDEN_NEURONS = 2;
+const double DFL_MIN_WEIGHT_INIT = -0.3;
+const double DFL_MAX_WEIGHT_INIT = 0.3;
+const double DFL_LEARNING_RATE = 0.2;
+
+
 /*
     Steps to add a new argument with name "argument"
 
@@ -83,6 +94,11 @@ public:
     static int plays;
     static uint random_seed;
     static mt19937_64 random_generator;
+    static int n_hidden_layers;
+    static int n_hidden_neurons;
+    static double min_weight_init;
+    static double max_weight_init;
+    static double learning_rate;
 
     static void init(int argc, char* argv[]);
 
@@ -111,6 +127,11 @@ Pacman_AI_Agent Arguments::pacman_ai_agent;
 int Arguments::plays;
 uint Arguments::random_seed;
 mt19937_64 Arguments::random_generator;
+int Arguments::n_hidden_layers;
+int Arguments::n_hidden_neurons;
+double Arguments::min_weight_init;
+double Arguments::max_weight_init;
+double Arguments::learning_rate;
 
 void Arguments::init(int argc, char* argv[]) {
     Arguments::layout_path = DFL_LAYOUT_PATH;
@@ -128,6 +149,11 @@ void Arguments::init(int argc, char* argv[]) {
     Arguments::pacman_ai_agent = DFL_PACMAN_AI_AGENT;
     Arguments::plays = DFL_PLAYS;
     Arguments::random_seed = DFL_RANDOM_SEED;
+    Arguments::n_hidden_layers = DFL_N_HIDDEN_LAYERS;
+    Arguments::n_hidden_neurons = DFL_N_HIDDEN_NEURONS;
+    Arguments::min_weight_init = DFL_MIN_WEIGHT_INIT;
+    Arguments::max_weight_init = DFL_MAX_WEIGHT_INIT;
+    Arguments::learning_rate = DFL_LEARNING_RATE;
 
     for (int i = 1; i < argc; ++i) treat_arg(argv[i]);
 }
@@ -156,6 +182,11 @@ void Arguments::assign_argument(const string& key, const string& value) {
         if (value == "time") Arguments::random_seed = time(0);
         else Arguments::random_seed = stoul(value);
     }
+    else if (key == "n_hidden_layers") Arguments::n_hidden_layers = stoi(value);
+    else if (key == "n_hidden_neurons") Arguments::n_hidden_neurons = stoi(value);
+    else if (key == "min_weight_init") Arguments::min_weight_init = stod(value);
+    else if (key == "max_weight_init") Arguments::max_weight_init = stod(value);
+    else if (key == "learning_rate") Arguments::learning_rate = stod(value);
     else error("Invalid argument name '" + key + "'");
 }
 
