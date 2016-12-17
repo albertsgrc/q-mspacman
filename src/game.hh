@@ -54,7 +54,7 @@ private:
                     case SCATTER:
                         distribution = normal_distribution<float>(ghost.chase_cycle_rounds, Arguments::cycle_rounds_stdev);
                         ghost.behaviour = Ghost_Behaviour::CHASE;
-                        ghost.chase_cycle_rounds *= Arguments::chase_cycle_factor;
+                        ghost.chase_cycle_rounds = min(1000000, int(ghost.chase_cycle_rounds*Arguments::chase_cycle_factor));
                         break;
                     case CHASE:
                         if (ghost.scatter_cycle_rounds >= 1) {
