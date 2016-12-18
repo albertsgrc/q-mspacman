@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 
 public class NeuralNetwork {
-=
+
     private double[][] hiddenWeights;
     private double[][] outputWeights;
     private double[] hiddenBias;
@@ -55,7 +55,7 @@ public class NeuralNetwork {
         this.outputWeights = new double[hiddens][outputs];
         this.hiddenBias = new double[hiddens];
         this.outputBias = new double[outputs];
-
+        
         this.trainQueue = new LinkedList();
 
         double initRange = 0;
@@ -104,18 +104,18 @@ public class NeuralNetwork {
         double[] desired;
         double learningRate;
     }
-
+    
     private LinkedList trainQueue;
-
+    
     public void enqueue(double[] input, double[] desired, double learningRate) {
         enqueueItem newItem = new enqueueItem();
         newItem.input = input;
         newItem.desired = desired;
         newItem.learningRate = learningRate;
-
+        
         trainQueue.addFirst(newItem);
     }
-
+    
     public void process_queue(boolean effect) {
         while (!trainQueue.isEmpty()) {
             enqueueItem oldItem = (enqueueItem) trainQueue.pop();
@@ -220,4 +220,53 @@ public class NeuralNetwork {
         }
         return newOutput;
     }
+
+    public void writeNN(String filename) {
+        try {
+            PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(filename, true)));
+            out.println("[NN]");
+            out.println(inputs + "," + hiddens + "," + outputs);
+            for (int i = 0; i < inputs; i++) {
+                for (int h = 0; h < hiddens - 1; h++) {
+                    out.print(this.hiddenWeights[i][h] + ",");
+                }
+                out.print(this.hiddenWeights[i][hiddens - 1] + "\n");
+            }
+            for (int h = 0; h < hiddens; h++) {
+                out.println(this.hiddenBias[h]);
+            }
+            for (int h = 0; h < hiddens; h++) {
+                for (int o = 0; o < outputs - 1; o++) {
+                    out.print(this.outputWeights[h][o] + ",");
+                }
+                out.print(this.outputWeights[h][outputs - 1] + "\n");
+            }
+            for (int o = 0; o < outputs; o++) {
+                out.println(this.outputBias[o]);
+            }
+            out.flush();
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void printInputNodes() {
+        for (int i = 0; i < inputActivation.length; i++) {
+            System.out.println("Node #" + i + ": " + outputActivation[i]);
+        }
+    }
+
+    public void printHiddenNodes() {
+        for (int i = 0; i < hiddenActivation.length; i++) {
+            System.out.println("Node #" + i + ": " + outputActivation[i]);
+        }
+    }
+
+    public void printOutputNodes() {
+        for (int i = 0; i < outputActivation.length; i++) {
+            System.out.println("Node #" + i + ": " + outputActivation[i]);
+        }
+    }
+
 }

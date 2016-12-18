@@ -49,27 +49,27 @@ public class PacMan {
     private static String NNDir;                    // Neural network files will be written to this directory
     private static String NNFile;                   // Resulting NN will be written to this file
     private static String NNSDir;                   // Neural network files for training states will be written to this directory
-
+    
     private static boolean firstepoch = true;       // Is this the first epoch?
     private static int epochBegin = 0;              // At what epoch did the training begin/resume?
-
+    
     private static double explorationchance;        // Current chance of exploration
     private static double learningRate;             // Current learning rate
-
+    
     private static short curAction;                 // Action as selected by network to be taken next
     private static short boldAction;                // Action currently used in exploration
     private static short actualMove;                // Action that was actually performed
     private static int lastNet = -1;                // Network last used in decision making
     private static boolean reverseAction = false;   // Is the new action the reverse of the previous action?
-
+   
     private static double[] curQs = new double[4];  // Current Q-values
     private static double[] newQs = new double[4];  // Future Q-values after selected action (curAction)
     private static double[] newV = new double[1];   // Future V-values after selected action (curAction)
-
+    
     private static float lifeTime = 0;              // How great of a distance Ms.Pac-Man traveled during current game (score for avoiding ghosts)
     private static float totalReward;               // Total reward gathered during current game
     private static double totalPillReward = 0;      // Total reward gathered from collection pills during current game
-
+    
     private static float minReward = 0;             // Variable for plotting performance
     private static float maxReward = 0;             // Variable for plotting performance
     private static float avgReward = 0;             // Variable for plotting performance
@@ -80,32 +80,32 @@ public class PacMan {
     private static float maxScore = 0;              // Variable for plotting performance
     private static float avgScore = 0;              // Variable for plotting performance
     private static int currentResolution = 0;       // Variable for plotting performance
-
+    
     private static int runcount = 0;                // Amount of network runs during entire training
     private static int gamesdone = -1;              // Amount of games done during entire training
     private static int numSuccess = 0;              // Amount of successful games during entire training
-
+    
     private static double pillPercentage;           // Percentage of completion for current game
     private static int curMaze;                     // Index of current maze
-
+            
     private static int numInputValues;              // Amount of input values in total
-
+    
     private static int inputs;                      // Amount of input nodes per network
     private static int hiddens;                     // Amount of hidden nodes per network
     private static int outputs;                     // Amount of output nodes per network
-
+    
     private static boolean entrapped = false;       // Whether Ms. Pac-Man has chance of escape
     private static int remainPowerpill = 0;         // The amount of network runs any powerpills have left
 
     private static double ghostThreshold;           // Counter deciding current phase of ghost behaviour
-
+    
     private static Charter chart = null;
     private static RateGraph rgraph = null;
     private static RIPGraph dgraph = null;
     private static QGraph qgraph = null;
     private static double[] visionMemory;
     private static double[] visionDecline;
-
+    
     private static boolean counterReset = false;     // Should all counters be reset?
 
     // Function to initialize or reset all counters
@@ -128,8 +128,8 @@ public class PacMan {
     // Main function triggered when the program is launched
     public static void main(String[] args) throws IOException, InterruptedException {
         System.out.println("MS. PAC-MAN FRAMEWORK");
-
-
+        
+        
         // Do some basic checks on the validity of the values in the Globals
         Globals.checkValidity();
 
@@ -144,7 +144,7 @@ public class PacMan {
         NNDir = "data/NN/";
         NNFile = "NN_" + timestamp + ".txt";
         NNSDir = "data/NNS/";
-
+        
         System.out.println("SIMULATION #" + timestamp + ":");
 
         // Set ghosts to a certain state if a static ghost state is ordered by the Globals
@@ -154,10 +154,10 @@ public class PacMan {
 
         // Initialize a list of neural networks for training state-action pairs
         ArrayList<NeuralNetwork> netList = new ArrayList<NeuralNetwork>();
-
+        
         // Calculate the amount of input values (in total, not per network!)
         numInputValues = util.calculateActiveAlgorithms() * 4;
-
+        
         // Calculate the specifications of the networks
         // Customizing these values will require altering of many functions and variables,
         // mainly those used for training and collecting input.
@@ -167,13 +167,13 @@ public class PacMan {
         // Initialize each network
         if (Globals.activeNet == Globals.NETWORK_SINGLE) {
             inputs = numInputValues / 4;
-
+            
             NeuralNetwork netSingle = new NeuralNetwork(inputs,hiddens,outputs);
             netList.add(netSingle);
         } else {
             // Alter the amount of inputs if we are dealing with action networks according to the Globals
             inputs = numInputValues;
-
+            
             NeuralNetwork netLeft = new NeuralNetwork(inputs, hiddens, outputs);
             NeuralNetwork netRight = new NeuralNetwork(inputs, hiddens, outputs);
             NeuralNetwork netUp = new NeuralNetwork(inputs, hiddens, outputs);
@@ -230,7 +230,7 @@ public class PacMan {
             // Continue with a random maze
             generator = new Random();
             curMaze = generator.nextInt(numMazes);
-
+            
             // Satisfy some graphs
             if (Globals.showVisualisation == true && Globals.showCharter == true) {
                 chart.clearData();
@@ -273,16 +273,16 @@ public class PacMan {
                 if (Game.gameLost == true) {
                     curMaze = 0;
                 }
-
+                
                 // Delay the gameplay if we are in realtime visualisation
                 if (Globals.showVisualisation == true) {
                     Thread.sleep(1000 / Globals.timeResolution);
                 }
-
+                
                 // Set ghost behaviour
                 determineGhostBehaviour(generator, Game);
             }
-
+            
             // Satisfy some graphs
             if (Globals.showVisualisation == true) {
                 Game.vis.getRidOf();
@@ -290,7 +290,7 @@ public class PacMan {
             if (Globals.showQGraph == true) {
                 qgraph.clearData();
             }
-
+            
             // If training was delayed until after the game, perform training now
             if (Globals.trainingAfterTheFact == true) {
                 Iterator<NeuralNetwork> it = netList.iterator();
@@ -300,12 +300,99 @@ public class PacMan {
                     obj.process_queue(Game.gameLost);
                 }
             }
-
+            
         } while (Globals.limitGames == false || Globals.totalGames > gamesdone);
-
+        
         System.exit(0);
     }
 
+    // Function to determine the proper ghost behaviour
+    public static void determineGhostBehaviour(Random generator, Environment Game) {
+
+        // Override ghost behaviour if a static ghost state was set in the Globals
+        if (Globals.alwaysEnabled == true) {
+            Game.globalGhostState = Globals.alwaysState;
+            
+            if (Globals.alwaysState == Globals.GHOST_AFRAID) {
+                remainPowerpill = 1;
+                for (int i = 0; i < Game.getGhosts().length; i++) {
+                    Game.getGhost(i).state = Globals.GHOST_AFRAID;
+                }
+            }
+            
+            Game.propagateGhostBehaviour();
+            return;
+        }
+
+        // Alter the global ghost state
+        
+        // Remember, the ghosts will only take on this state when propagateGhostBehaviour
+        // is called, or their state is manually altered to -1.
+
+        if (ghostThreshold > 1) {
+            Game.globalGhostState = Globals.GHOST_CHASE;
+        }
+        if (ghostThreshold > 10) {
+            Game.globalGhostState = Globals.GHOST_RANDOM;
+        }
+        if (ghostThreshold > 70) {
+            Game.globalGhostState = Globals.GHOST_CHASE;
+        }
+        if (ghostThreshold > 85) {
+            Game.globalGhostState = Globals.GHOST_RANDOM;
+        }
+        if (ghostThreshold >= 120) {
+            Game.globalGhostState = Globals.GHOST_SCATTER;
+            ghostThreshold = 0;
+        }
+
+        // If Ms. Pac-man just ate a powerpill
+        if (Game.justPowerpill == true) {
+
+            Game.justPowerpill = false;
+
+            // Set how many network runs the power pill has left
+            remainPowerpill = (int) ((double) Globals.durationPowerpill / (double) Globals.pacmanSpeed);
+
+            // Set all ghosts to the afraid state
+            for (int i = 0; i < Game.getGhosts().length; i++) {
+                Game.getGhost(i).state = Globals.GHOST_AFRAID;
+            }
+
+        } else if (remainPowerpill > 0) {
+
+            // If there is a power pill still active, lower the runs it has left.
+            remainPowerpill--;
+
+        } else {
+
+            // If there is no power pill active, propagate the global ghost state to all ghosts
+            // They will assume the global ghost state after this move
+            boolean dontbeScared = false;
+            for (int i = 0; i < Game.getGhosts().length; i++) {
+                if (Game.getGhost(i).state == Globals.GHOST_AFRAID) {
+                    dontbeScared = true;
+                }
+            }
+            if (dontbeScared == true) {
+                Game.propagateGhostBehaviour();
+            }
+
+        }
+    }
+
+    // Function to read all mazes in a directory
+    public static ArrayList<String> readMazes(String dir) {
+        ArrayList<String> mazeList = new ArrayList<String>();
+
+        File files = new File(dir);
+        for (File f : files.listFiles()) {
+            if (f.isFile()) {
+                mazeList.add(f.toString());
+            }
+        }
+        return mazeList;
+    }
 
     // Function to preprocess the game environment for the path finding algorithms
     public static void initialize(Environment Game) {
@@ -566,7 +653,7 @@ public class PacMan {
                 qgraph.addQValue(i, runcount, curQs[i]);
             }
         }
-
+        
         // Perform the previously selected move
         actualMove = Game.getPacMan().move(curAction, Game);
         boldAction = actualMove;
@@ -575,7 +662,7 @@ public class PacMan {
         if (Globals.showVisualisation == true) {
             Game.vis.updateVisualisation();
         }
-
+        
         // Determine reward, based on the action just performed
         int PacManX = Game.getPacMan().getX2();
         int PacManY = Game.getPacMan().getY2();
@@ -594,7 +681,7 @@ public class PacMan {
         }
         if (Game.gameLost) {
             reward += Globals.rewardLose;
-
+            
             if (Globals.showRIPGraph) {
                 dgraph.plotDeath(lastNet);
             }
@@ -640,7 +727,7 @@ public class PacMan {
         if (Math.random() <= explorationchance) {
             // Depending on the globals...
             if (Globals.boldExploration) {
-                // Select a random action, keep a steady direction until the next intersection
+                // Select a random action, keep a steady direction until the next intemrsection
                 // and disallow reversing on a path.
                 if (Game.getPacMan().reachedNewVertex) {
                     ArrayList<Short> actions = new ArrayList<Short>();
@@ -654,7 +741,7 @@ public class PacMan {
                         actions = newPA;
                     }
                     boldAction = actions.get((int) (Math.random() * actions.size()));
-
+                    
                 }
                 newAction = boldAction;
             } else {
@@ -665,7 +752,7 @@ public class PacMan {
 
         // Calculate the desired network output, and train network
         // The new action that was just selected has not yet been performed
-
+        
         // Q(v)-LEARNING
         if (Globals.learningRule == Globals.QV) {
             NeuralNetwork netStates = netListForStates.get(0);
@@ -678,13 +765,13 @@ public class PacMan {
             // Train the network
             // Interpretation of formula: V(s) = V(s) + n * (r + y * V(s') - V(s))
             train(netStates, curStateRep, desiredStateOutput);
-
+            
         // SARSA
         } else if (Globals.learningRule == Globals.SARSA) {
             // Get the desired output for the action that was just performed
             // Interpretation of formula: r + y * Q(s', a')
             curQs[curAction] = reward + (Globals.discountFactor * (Game.gameEnded ? 0.0 : newQs[newAction]));
-
+     
         // Q-LEARNING
         } else {
             // Get the desired output for the action that was just performed
@@ -714,7 +801,7 @@ public class PacMan {
 
         // Set the next action that was select as the future action to be performed
         curAction = newAction;
-
+        
         // Lower the learning rate if told by the Globals to do so on a win
         if (Game.gameEnded && !Game.gameLost) {
             Globals.learningRate *= Globals.diminishLearning;
@@ -727,9 +814,40 @@ public class PacMan {
 
         return (reward);
     }
-
+    
     // Function that returns whether the game has finished
-    private static double checkFinished(Environment Game) {}
+    private static double checkFinished(Environment Game) {
+        // Get whether there has been a collision with a ghost and process the type of collision
+        short ghostCollision = Game.ghostCollision();
+        if (ghostCollision == Globals.COLLISION_FATAL) {
+            // A fatal collision
+            Game.gameEnded = true;
+            Game.gameLost = true;
+
+            pillPercentage = ((double) (Game.totalPills - Game.pillsLeft)) / (double) Game.totalPills * 100;
+
+            writeScore(lifeTime, Game);
+        } else if (ghostCollision == Globals.COLLISION_ALLOWED) {
+            // A collision with a scared ghost
+            return Globals.rewardGhost;
+        } else {
+            // And if there has not been a collision, check if Ms.Pac-Man ate all pills
+            if (Game.pillsLeft == 0) {
+                // Tthe game has been won
+                Game.gameEnded = true;
+                Game.gameLost = false;
+                numSuccess++;
+
+                pillPercentage = 100;
+                writeScore(lifeTime, Game);            }
+        }
+
+        if (Game.gameEnded == true) {
+            remainPowerpill = 0;
+        }
+
+        return 0;
+    }
 
     // Function that retrieves the input values associated with a certain action,
     // out of a given state representation
@@ -781,13 +899,298 @@ public class PacMan {
                 learningRate = Globals.learningMinimum;
             }
         }
-
+        
         // Train now, or wait until after the game is finished if ordered to do so by the Globals
         if (Globals.trainingAfterTheFact == true) {
             net.enqueue(input, desired, learningRate);
         } else {
             net.train(input, desired, learningRate);
         }
+    }
+
+    // Function that calculates statistics after a game is finished,
+    // plotting and storing them afterwards
+    private static void writeScore(float score, Environment Game) {
+        gamesdone++;
+
+        if (firstepoch == true) {
+            epochBegin = gamesdone;
+        }
+
+        currentResolution = Globals.graphResolution;
+
+        int runningAverage = Globals.runningAverage;
+        if (runningAverage > gamesdone) {
+            runningAverage = gamesdone + 1;
+        }
+
+        avgLifeTime = (float) ((1 - 1.0 / (double) runningAverage) * avgLifeTime + 1.0 / (double) runningAverage * lifeTime);
+
+        if (maxLifeTime == 0) {
+            maxLifeTime = lifeTime;
+        } else {
+            maxLifeTime *= 0.9;
+            if (lifeTime > maxLifeTime) {
+                maxLifeTime = lifeTime;
+            }
+            if (avgLifeTime > maxLifeTime) {
+                maxLifeTime = avgLifeTime;
+            }
+        }
+        if (minLifeTime == 0) {
+            minLifeTime = lifeTime;
+        } else {
+            minLifeTime *= 1.1;
+            if (lifeTime < minLifeTime) {
+                minLifeTime = lifeTime;
+            }
+            if (avgLifeTime < minLifeTime) {
+                minLifeTime = avgLifeTime;
+            }
+        }
+
+        if (Globals.showRateGraph == true && Globals.plotLifeTime == true && gamesdone % currentResolution == 0) {
+            rgraph.addLifeTime(gamesdone, avgLifeTime, maxLifeTime, minLifeTime);
+        }
+
+
+        avgScore = (float) ((1 - 1.0 / (double) runningAverage) * avgScore + 1.0 / (double) runningAverage * totalPillReward);
+
+        if (maxScore == 0) {
+            maxScore = (float) totalPillReward;
+        } else {
+            maxScore *= maxScore > 0 ? 0.8 : 1.2;
+            if (totalPillReward > maxScore) {
+                maxScore = (float) totalPillReward;
+            }
+            if (avgScore > maxScore) {
+                maxScore = avgScore;
+            }
+        }
+        if (minScore == 0) {
+            minScore = (float) totalPillReward;
+        } else {
+            minScore *= minScore > 0 ? 1.2 : 0.8;
+            if (totalPillReward < minScore) {
+                minScore = (float) totalPillReward;
+            }
+            if (avgScore < minScore) {
+                minScore = avgScore;
+            }
+        }
+
+        double avgCompletion = (double) avgScore / (double) Game.totalPills / (double) Globals.rewardPill * 100;
+        double maxCompletion = (double) maxScore / (double) Game.totalPills / (double) Globals.rewardPill * 100;
+        double minCompletion = (double) minScore / (double) Game.totalPills / (double) Globals.rewardPill * 100;
+
+
+        if (Globals.showRateGraph == true && gamesdone % currentResolution == 0) {
+            rgraph.addCompletion(gamesdone, avgCompletion, maxCompletion, minCompletion);
+        }
+
+
+        avgReward = (float) ((1 - 1.0 / (double) runningAverage) * avgReward + 1.0 / (double) runningAverage * totalReward);
+
+        if (maxReward == 0) {
+            maxReward = totalReward;
+        } else {
+            maxReward *= maxReward > 0 ? 0.8 : 1.2;
+            if (totalReward > maxReward) {
+                maxReward = totalReward;
+            }
+            if (avgScore > maxScore) {
+                maxReward = avgReward;
+            }
+        }
+        if (minScore == 0) {
+            minReward = totalReward;
+        } else {
+            minReward *= minReward > 0 ? 1.2 : 0.8;
+            if (totalReward < minReward) {
+                minReward = totalReward;
+            }
+            if (avgReward < minReward) {
+                minReward = avgReward;
+            }
+        }
+
+        if (Globals.showRateGraph == true && Globals.plotAbsoluteRewards == true && gamesdone % currentResolution == 0) {
+            rgraph.addReward(gamesdone, avgReward, maxReward, minReward);
+        }
+
+        firstepoch = false;
+
+        System.out.println("#" + String.format("%05d", gamesdone) + " - lifeTime:  " + String.format("%6s", lifeTime) + "  - Score:  " + String.format("%6.2f", (float)pillPercentage) + "%" + "  - Exploration:  " + String.format("%5.4f", explorationchance) + "  - learningRate:  " + String.format("%8.7f", learningRate));
+        
+        writeMSE(scoreFile);
+
+    }
+
+    // Function that writes a list of networks to a file in a directory
+    private static void writeNN(String dir, ArrayList<NeuralNetwork> net) {
+        try {
+            PrintWriter out = new PrintWriter(new FileWriter(dir + NNFile));
+
+            // write input settings
+            out.println("## INPUT SETTINGS ##");
+
+            String globalVars = "";
+            globalVars += Globals.enableActionInput + ",";
+            globalVars += Globals.enablePillInput + ",";
+            globalVars += Globals.enableGhostDistanceInput + ",";
+            globalVars += Globals.enableGhostDirectionInput + ",";
+            globalVars += Globals.enableGhostAfraidInput + ",";
+            globalVars += Globals.enableEntrapmentInput + ",";
+            globalVars += Globals.enablePowerPillInput + ",";
+            globalVars += Globals.enablePillsEatenInput + ",";
+            globalVars += Globals.enablePowerPillDurationInput + ",";
+
+            out.println(
+                    globalVars
+                    + avgLifeTime + ","
+                    + gamesdone + ","
+                    + numSuccess);
+            out.println("## NEURAL NETWORKS ##");
+            out.flush();
+
+            // write all NN's
+            for (int i = 0; i < net.size(); i++) {
+                net.get(i).writeNN(dir + NNFile);
+            }
+
+            out.flush();
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Function that writes the results of a game to a CSV-file
+    public static void writeMSE(String filename) {
+        // Format: number of games played, index of maze, percentage of pills collected,
+        //         lifetime in distance travelled by Ms. Pac-Man, exploration chance,
+        //         learning rate
+        
+
+        try {
+            PrintWriter out = new PrintWriter(new FileWriter(filename, true));
+            out.println(gamesdone + "," + curMaze + "," + pillPercentage + "," + lifeTime + "," + (float)explorationchance + "," + (float)learningRate);
+            out.flush();
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Function that reads one or more networks from a file
+    // This will also override some of the Global-settings
+    private static ArrayList<NeuralNetwork> readNN(String filename) {
+        ArrayList<NeuralNetwork> net = new ArrayList<NeuralNetwork>();
+
+        double[][] hiddenWeights = null;
+        double[][] outputWeights = null;
+        double[] hiddenBias = null;
+        double[] outputBias = null;
+
+        System.out.println("Reading file '" + filename + "'...");
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(filename));
+            if (in.readLine().startsWith("## INPUT SETTINGS ##")) {
+                String settings = in.readLine();
+                String[] settingsParts = settings.split(",");
+                Globals.enableActionInput = Boolean.parseBoolean(settingsParts[0]);
+                Globals.enablePillInput = Boolean.parseBoolean(settingsParts[1]);
+                Globals.enableGhostDistanceInput = Boolean.parseBoolean(settingsParts[2]);
+                Globals.enableGhostDirectionInput = Boolean.parseBoolean(settingsParts[3]);
+                Globals.enableGhostAfraidInput = Boolean.parseBoolean(settingsParts[4]);
+                Globals.enableEntrapmentInput = Boolean.parseBoolean(settingsParts[5]);
+                Globals.enablePowerPillInput = Boolean.parseBoolean(settingsParts[6]);
+                Globals.enablePillsEatenInput = Boolean.parseBoolean(settingsParts[7]);
+                Globals.enablePowerPillDurationInput = Boolean.parseBoolean(settingsParts[8]);
+                int offset = Globals.numAlghorithms;
+                avgLifeTime = Float.parseFloat(settingsParts[offset + 0]);
+                gamesdone = Integer.parseInt(settingsParts[offset + 1]);
+                numSuccess = Integer.parseInt(settingsParts[offset + 2]);
+
+                // Show input settings to user
+                printSettings();
+            }
+
+            in.readLine();
+
+            System.out.println("## Neural Networks ##");
+            for (int n = 0; n < 4; n++) {
+                String firstLine = in.readLine();
+                numInputValues = util.calculateActiveAlgorithms() * 4;
+                inputs = numInputValues / 4;
+                if (Globals.activeNet == Globals.NETWORK_ACTION) {
+                    inputs = inputs * 4;
+                }
+                int netInputs = 0;
+                if (firstLine != null && firstLine.startsWith("[NN]")) {
+                    String header = in.readLine();
+                    String[] headerParts = header.split(",");
+                    netInputs = Integer.parseInt(headerParts[0]);
+                    hiddens = Integer.parseInt(headerParts[1]);
+                    outputs = Integer.parseInt(headerParts[2]);
+                    hiddenWeights = new double[netInputs][hiddens];
+                    hiddenBias = new double[hiddens];
+                    outputWeights = new double[hiddens][outputs];
+                    outputBias = new double[outputs];
+
+                    for (int i = 0; i < netInputs; i++) {
+                        String[] dataParts = in.readLine().split(",");
+                        for (int h = 0; h < hiddens; h++) {
+                            hiddenWeights[i][h] = Double.parseDouble(dataParts[h]);
+                        }
+                    }
+                    for (int h = 0; h < hiddens; h++) {
+                        hiddenBias[h] = Double.parseDouble(in.readLine());
+                    }
+                    for (int h = 0; h < hiddens; h++) {
+                        String[] dataParts = in.readLine().split(",");
+                        for (int o = 0; o < outputs; o++) {
+                            outputWeights[h][o] = Double.parseDouble(dataParts[o]);
+                        }
+                    }
+                    for (int o = 0; o < outputs; o++) {
+                        outputBias[o] = Double.parseDouble(in.readLine());
+                    }
+                } else {
+                    break;
+                }
+
+                System.out.println("loading network #" + n);
+                NeuralNetwork newNet;
+                newNet = new NeuralNetwork(netInputs, hiddens, outputs, hiddenWeights, outputWeights, hiddenBias, outputBias);
+                net.add(newNet);
+            }
+            System.out.println();
+            System.out.println("Done reading file '" + filename + "'");
+            System.out.println("Continue training...\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return net;
+    }
+
+    // Function that prints the current settings and progress
+    private static void printSettings() {
+        System.out.println();
+        System.out.println("## Configuration ##");
+        System.out.println("enableActionInput \t\t= " + Globals.enableActionInput);
+        System.out.println("enablePillInput \t\t= " + Globals.enablePillInput);
+        System.out.println("enableGhostDistanceInput \t= " + Globals.enableGhostDistanceInput);
+        System.out.println("enableGhostDirectionInput \t= " + Globals.enableGhostDirectionInput);
+        System.out.println("enableGhostAfraidInput \t= " + Globals.enableGhostAfraidInput);
+        System.out.println("enableEntrapmentInput \t\t= " + Globals.enableEntrapmentInput);
+        System.out.println("enablePowerPillInput \t\t= " + Globals.enablePowerPillInput);
+        System.out.println();
+        System.out.println("Average lifeTime \t\t= " + avgLifeTime);
+        System.out.println("Number of games played \t\t= " + gamesdone);
+        System.out.println("Number of successful runs \t= " + numSuccess);
+        System.out.println();
     }
 
 }

@@ -146,7 +146,7 @@ public class Globals {
 
     // Should the simulation stop after a specific number of games?
     public static boolean limitGames = true;
-    public static int totalGames = 20;
+    public static int totalGames = 10000;
     
     // The state ghosts should spawn in.
     public static short startingGhostState = GHOST_SCATTER;
