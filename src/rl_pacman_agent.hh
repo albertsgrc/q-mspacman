@@ -14,7 +14,7 @@
 
 class RL_Pacman_Agent: public Agent {
 public:
-    static const int N_INPUTS = 6; // TODO: Define
+    static const int N_INPUTS = 6;
 
     double reward;
 
@@ -52,20 +52,10 @@ public:
         for (uint i = 0; i < valid_dirs.size(); ++i) {
             const Direction& d = valid_dirs[i];
             const Position& rpos = pos.move_destination(d);
-            input[2] = bfs(rpos, [s](const Position& p){ return s.has_any_pill(p); }, s).dist/double(100);
-            input[3] = bfs(rpos, [s](const Position& p){ return s.dangerous_ghost_in_position(p); }, s).dist/double(100);
-            input[4] = bfs(rpos, [s](const Position& p){ return s.is_intersection(p); }, s).dist/double(100);
+            input[2] = bfs(rpos, [s](const Position& p){ return s.has_any_pill(p); }, s).dist/double(s.max_dist);
+            input[3] = bfs(rpos, [s](const Position& p){ return s.dangerous_ghost_in_position(p); }, s).dist/double(s.max_dist);
+            input[4] = bfs(rpos, [s](const Position& p){ return s.is_intersection(p); }, s).dist/double(s.max_dist);
             input[5] = s.pacman.dir == d;
-
-            /*cout << "Dir [" << d.i << ',' << d.j << "]:" << endl
-                 << "Completion: " << input[0] << endl
-                 << "Powerpill: " << input[1] << endl
-                 << "Distance pill: " << input[2] << endl
-                 << "Distance ghost: " << input[3] << endl
-                 << "Distance intersection: " << input[4] << endl
-                 << "Is dir:" << input[5] << endl;*/
-
-            // TODO: Compute input for direction d
 
             double q = nn.recall(input)[0];
 
@@ -77,9 +67,7 @@ public:
         }
 
         double adv = double(n_games)/Arguments::plays;
-        Direction take = adv <= 0.2 ? valid_dirs[randint(valid_dirs.size())] :
-                         adv >= 0.8 ? best_dir :
-                randdouble() <= (double(n_games)/Arguments::plays-0.2)/0.6 ? best_dir : valid_dirs[randint(valid_dirs.size())];
+        Direction take = randdouble() > clamp(adv, 0.2, 0.95) ? valid_dirs[randint(valid_dirs.size())] : best_dir;
 
         if (take == best_dir) ++n_best_selected;
         ++total_possible;
@@ -87,7 +75,6 @@ public:
         // If the game ended previously there's no sense of future reward for the last move of the game
         // Note that the first train of all games is a bit sketchy (all inputs 0, reward 0) but doesn't matter
         // in the long term
-        //cout << reward << endl;
         double expected[1] = { reward + (s.round > 1 ? Arguments::discount_factor*max_q : 0) };
         nn.train(previous_input, expected);
 

@@ -61,13 +61,15 @@ int main(int argc, char* argv[]) {
                  << (Arguments::pacman_ai_agent == RL ? " ::: " : "     ");
 
             if (Arguments::pacman_ai_agent == RL)
-                cout << 1.0 - (((RL_Pacman_Agent*)(pacman_ai))->prop_select_best) << " exploration        ";
+                cout << 100*(((RL_Pacman_Agent*)(pacman_ai))->prop_select_best) << "% best action        ";
         }
 
         cout.flush();
 
         game.reset();
     }
+
+    if (Arguments::pacman_ai_agent == RL) ((RL_Pacman_Agent*)(pacman_ai))->nn.write_file("../data/neural.txt");
 
     cout << endl;
 }

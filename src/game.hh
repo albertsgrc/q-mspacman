@@ -133,7 +133,6 @@ public:
 
         state.total_pills = state.n_pills_left + state.n_powerpills_left;
         state.distribution_valid_pos = uniform_int_distribution<>(0, state.valid_positions.size() - 1);
-        state.max_dist = state.valid_positions.size()*state.valid_positions.size();
 
         SeenMatrix::init(rows, cols);
         PathMagic::compute(state);

@@ -28,9 +28,10 @@ struct PathStep {
 struct PathStepMagic {
     Position pos;
     char dir;
+    int dist;
 
     PathStepMagic() {}
-    PathStepMagic(const Position& pos, char dir) : pos(pos), dir(dir) {}
+    PathStepMagic(const Position& pos, char dir, int dist) : pos(pos), dir(dir), dist(dist) {}
 };
 
 struct CostPathStep {
@@ -89,7 +90,8 @@ struct PathMagic {
         return Direction::LIST[(int)direction_from_to[id_from][id_to]];
     }
 
-    static void compute(const State& s) {
+    static void compute(State& s) {
+        s.max_dist = 1;
         int n = s.valid_positions.size();
         direction_from_to = vector<vector<char>>(n, vector<char>(n));
 
@@ -105,19 +107,20 @@ struct PathMagic {
                 Position dest = start.move_destination(Direction::LIST[j]);
 
                 if (s.valid_to_move(dest)) {
-                    Q.push(PathStepMagic(dest, j));
+                    Q.push(PathStepMagic(dest, j, 1));
                     S[dest.i][dest.j] = true;
             }   }
 
             while (not Q.empty()) {
                 PathStepMagic current = Q.front(); Q.pop();
+                s.max_dist = max(s.max_dist, current.dist);
                 direction_from_to[i][index_from_pos[current.pos.i][current.pos.j]] = current.dir;
 
                 for (int j = 0; j < Direction::NUMBER; ++j) {
                     Position dest = current.pos.move_destination(Direction::LIST[j]);
 
                     if (not S[dest.i][dest.j] and s.valid_to_move(dest)) {
-                        Q.push(PathStepMagic(dest, current.dir));
+                        Q.push(PathStepMagic(dest, current.dir, current.dist + 1));
                         S[dest.i][dest.j] = true;
         }   }   }   }
     }

@@ -127,6 +127,12 @@ vector<int> randvector(int n, int a, int b) {
 	return v;
 }
 
+inline double clamp(double x, double l, double r) {
+	if (x <= l) return 0.0;
+	if (x >= r) return 1.0;
+	return (x - l)/(r - l);
+}
+
 template <typename T>
 bool between(T x, T l, T r) {
 	return l <= x and x <= r;

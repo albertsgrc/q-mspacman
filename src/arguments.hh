@@ -75,9 +75,6 @@ const double DFL_REWARD_STEP = -5;
 
 const double DFL_DISCOUNT_FACTOR = 0.95;
 
-// Indicates how fast is the descent on the exploration factor as the number of played games increases
-const double DFL_EXPLORATION_FACTOR_DECREASE_SPEED_FACTOR = 0.1; // Set to (> 2) to not explore at all
-
 typedef unsigned int uint;
 void error(const string& msg) {
     perror(msg.c_str());
@@ -127,7 +124,6 @@ public:
     static double reward_reverse;
     static double reward_step;
     static double discount_factor;
-    static double exploration_factor_decrease_speed_factor;
 
     static void init(int argc, char* argv[]);
 
@@ -169,7 +165,6 @@ double Arguments::reward_lose;
 double Arguments::reward_reverse;
 double Arguments::reward_step;
 double Arguments::discount_factor;
-double Arguments::exploration_factor_decrease_speed_factor;
 
 void Arguments::init(int argc, char* argv[]) {
     Arguments::layout_path = DFL_LAYOUT_PATH;
@@ -200,7 +195,6 @@ void Arguments::init(int argc, char* argv[]) {
     Arguments::reward_reverse = DFL_REWARD_REVERSE;
     Arguments::reward_step = DFL_REWARD_STEP;
     Arguments::discount_factor = DFL_DISCOUNT_FACTOR;
-    Arguments::exploration_factor_decrease_speed_factor = DFL_EXPLORATION_FACTOR_DECREASE_SPEED_FACTOR;
 
     for (int i = 1; i < argc; ++i) treat_arg(argv[i]);
 }
@@ -243,7 +237,6 @@ void Arguments::assign_argument(const string& key, const string& value) {
     else if (key == "reward_reverse") reward_reverse = stod(value);
     else if (key == "reward_step") reward_step = stod(value);
     else if (key == "discount_factor") discount_factor = stod(value);
-    else if (key == "exploration_factor_decrease_speed_factor") exploration_factor_decrease_speed_factor = stod(value);
     else error("Invalid argument name '" + key + "'");
 }
 
