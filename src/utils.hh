@@ -19,11 +19,14 @@
 #include <cassert>
 #include <cmath>
 #include <sys/resource.h>
+#include "arguments.hh"
 
 using namespace std;
 
 typedef unsigned char uchar;
 typedef unsigned int uint;
+
+uniform_real_distribution<> distribution_real(0,1);
 
 // Matrix Class
 template <typename T>
@@ -80,22 +83,21 @@ inline char    readchar	   () {	char   c; cin >> c; return c; }
 inline bool    readbool    () { bool   b; cin >> b; return b; }
 inline double  readdouble  () { double d; cin >> d; return d; }
 
-const double INFINIT = numeric_limits<double>::infinity();
+const double INFINITE  = numeric_limits<double>::infinity();
 const int MAXINT = numeric_limits<int>::max();
 
-// Return a random real in [0, 1)
 inline double randdouble() {
-	return rand()/double(RAND_MAX);
+	return distribution_real(Arguments::random_generator);
 }
 
 // Returns a random integer in [a, b]
 inline int randint(int a, int b) {
-	return a + rand()%(b - a + 1);
+	return uniform_int_distribution<>(a, b)(Arguments::random_generator);
 }
 
 // Returns a random integer in [0, n-1]
 inline int randint(int n) {
-	return rand()%n;
+	return uniform_int_distribution<>(0, n-1)(Arguments::random_generator);
 }
 
 // Returns true with probability p
@@ -123,11 +125,6 @@ vector<int> randvector(int n, int a, int b) {
 	vector<int> v(n);
 	for (int& x : v) x = randint(a, b);
 	return v;
-}
-
-void error(const string& msg) {
-    perror(msg.c_str());
-    exit(1);
 }
 
 template <typename T>

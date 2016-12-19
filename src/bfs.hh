@@ -16,7 +16,7 @@
 using namespace std;
 
 PathResult bfs(const Position& start, function<bool(const Position&)> reached_end, const State& state) {
-    if (reached_end(start)) return PathResult(Direction::STAY);
+    if (reached_end(start)) return PathResult(Direction::STAY, 0);
 
     queue<PathStep> Q;
     SeenMatrix::reset();
@@ -27,7 +27,7 @@ PathResult bfs(const Position& start, function<bool(const Position&)> reached_en
         Position dest = start.move_destination(dir);
 
         if (state.valid_to_move(dest)) {
-            Q.push(PathStep(dest, dir));
+            Q.push(PathStep(dest, dir, 1));
             S[dest.i][dest.j] = true;
     }   }
 
@@ -38,11 +38,11 @@ PathResult bfs(const Position& start, function<bool(const Position&)> reached_en
             Position dest = current.pos.move_destination(dir);
 
             if (not S[dest.i][dest.j] and state.valid_to_move(dest)) {
-                Q.push(PathStep(dest, current.initial));
+                Q.push(PathStep(dest, current.initial, current.dist + 1));
                 S[dest.i][dest.j] = true;
     }   }   }
 
-    return Q.empty() ? PathResult(false) : PathResult(Q.front().initial);
+    return Q.empty() ? PathResult(false) : PathResult(Q.front().initial, Q.front().dist);
 }
 
 

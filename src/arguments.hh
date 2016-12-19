@@ -3,11 +3,10 @@
 
 #include <string>
 #include <random>
-#include "utils.hh"
 using namespace std;
 
 enum Pacman_AI_Agent {
-    PATHFINDING, INPUT, RANDOM
+    PATHFINDING, INPUT, RANDOM, RL
 };
 
 const string LAYOUT_FOLDER = "./layouts/";
@@ -44,7 +43,7 @@ const int DFL_INITIAL_CHASE_CYCLE_ROUNDS = 30;
 const float DFL_CYCLE_ROUNDS_STDEV = 4;
 
 const int DFL_N_ROUNDS_POWERPILL = 35;
-const int DFL_N_ROUNDS_GHOST_REVIVE = 10;
+const int DFL_N_ROUNDS_GHOST_REVIVE = 15;
 
 // For a value of X, ghost #0 will start moving at round 1, ghost #1 will start
 // at round X, ghost #2 will start at round 2*X, ghost #3 will start at round 3*X,
@@ -58,11 +57,32 @@ const size_t DFL_RANDOM_SEED = time(0);
 /** NEURAL NETWORK ARGUMENTS **/
 
 const int DFL_N_HIDDEN_LAYERS = 1;
-const int DFL_N_HIDDEN_NEURONS = 2;
+const int DFL_N_HIDDEN_NEURONS = 50;
 const double DFL_MIN_WEIGHT_INIT = -0.3;
 const double DFL_MAX_WEIGHT_INIT = 0.3;
-const double DFL_LEARNING_RATE = 0.2;
+const double DFL_LEARNING_RATE = 0.0005;
 
+
+/** Q-LEARNING ARGUMENTS **/
+
+const double DFL_REWARD_PILL = 12;
+const double DFL_REWARD_POWERPILL = 3;
+const double DFL_REWARD_KILL_GHOST = 20;
+const double DFL_REWARD_WIN = 50;
+const double DFL_REWARD_LOSE = -350;
+const double DFL_REWARD_REVERSE = -6;
+const double DFL_REWARD_STEP = -5;
+
+const double DFL_DISCOUNT_FACTOR = 0.95;
+
+// Indicates how fast is the descent on the exploration factor as the number of played games increases
+const double DFL_EXPLORATION_FACTOR_DECREASE_SPEED_FACTOR = 0.1; // Set to (> 2) to not explore at all
+
+typedef unsigned int uint;
+void error(const string& msg) {
+    perror(msg.c_str());
+    exit(1);
+}
 
 /*
     Steps to add a new argument with name "argument"
@@ -99,6 +119,15 @@ public:
     static double min_weight_init;
     static double max_weight_init;
     static double learning_rate;
+    static double reward_pill;
+    static double reward_powerpill;
+    static double reward_kill_ghost;
+    static double reward_win;
+    static double reward_lose;
+    static double reward_reverse;
+    static double reward_step;
+    static double discount_factor;
+    static double exploration_factor_decrease_speed_factor;
 
     static void init(int argc, char* argv[]);
 
@@ -132,6 +161,15 @@ int Arguments::n_hidden_neurons;
 double Arguments::min_weight_init;
 double Arguments::max_weight_init;
 double Arguments::learning_rate;
+double Arguments::reward_pill;
+double Arguments::reward_powerpill;
+double Arguments::reward_kill_ghost;
+double Arguments::reward_win;
+double Arguments::reward_lose;
+double Arguments::reward_reverse;
+double Arguments::reward_step;
+double Arguments::discount_factor;
+double Arguments::exploration_factor_decrease_speed_factor;
 
 void Arguments::init(int argc, char* argv[]) {
     Arguments::layout_path = DFL_LAYOUT_PATH;
@@ -154,6 +192,15 @@ void Arguments::init(int argc, char* argv[]) {
     Arguments::min_weight_init = DFL_MIN_WEIGHT_INIT;
     Arguments::max_weight_init = DFL_MAX_WEIGHT_INIT;
     Arguments::learning_rate = DFL_LEARNING_RATE;
+    Arguments::reward_pill = DFL_REWARD_PILL;
+    Arguments::reward_powerpill = DFL_REWARD_POWERPILL;
+    Arguments::reward_kill_ghost = DFL_REWARD_KILL_GHOST;
+    Arguments::reward_win = DFL_REWARD_WIN;
+    Arguments::reward_lose = DFL_REWARD_LOSE;
+    Arguments::reward_reverse = DFL_REWARD_REVERSE;
+    Arguments::reward_step = DFL_REWARD_STEP;
+    Arguments::discount_factor = DFL_DISCOUNT_FACTOR;
+    Arguments::exploration_factor_decrease_speed_factor = DFL_EXPLORATION_FACTOR_DECREASE_SPEED_FACTOR;
 
     for (int i = 1; i < argc; ++i) treat_arg(argv[i]);
 }
@@ -175,6 +222,7 @@ void Arguments::assign_argument(const string& key, const string& value) {
         if (value == "pathfinding") Arguments::pacman_ai_agent = PATHFINDING;
         else if (value == "input") Arguments::pacman_ai_agent = INPUT;
         else if (value == "random") Arguments::pacman_ai_agent = RANDOM;
+        else if (value == "rl") Arguments::pacman_ai_agent = RL;
         else error("Invalid pacman AI agent name '" + value + "'");
     }
     else if (key == "plays") Arguments::plays = stoi(value);
@@ -187,6 +235,15 @@ void Arguments::assign_argument(const string& key, const string& value) {
     else if (key == "min_weight_init") Arguments::min_weight_init = stod(value);
     else if (key == "max_weight_init") Arguments::max_weight_init = stod(value);
     else if (key == "learning_rate") Arguments::learning_rate = stod(value);
+    else if (key == "reward_pill") reward_pill = stod(value);
+    else if (key == "reward_powerpill") reward_powerpill = stod(value);
+    else if (key == "reward_kill_ghost") reward_kill_ghost = stod(value);
+    else if (key == "reward_win") reward_win = stod(value);
+    else if (key == "reward_lose") reward_lose = stod(value);
+    else if (key == "reward_reverse") reward_reverse = stod(value);
+    else if (key == "reward_step") reward_step = stod(value);
+    else if (key == "discount_factor") discount_factor = stod(value);
+    else if (key == "exploration_factor_decrease_speed_factor") exploration_factor_decrease_speed_factor = stod(value);
     else error("Invalid argument name '" + key + "'");
 }
 
@@ -220,7 +277,10 @@ void Arguments::postprocess() {
     Arguments::n_rounds_ghost_revive /= Arguments::pacman_speed;
     Arguments::n_rounds_powerpill /= Arguments::pacman_speed;
     Arguments::n_rounds_between_ghosts_start /= Arguments::pacman_speed;
+
     Arguments::random_generator = mt19937_64(Arguments::random_seed);
+
+    Arguments::reward_step *= Arguments::pacman_speed;
 }
 
 #endif

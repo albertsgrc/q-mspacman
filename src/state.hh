@@ -22,6 +22,8 @@ struct State {
 
     // Contains a list of all valid positions in the board
     static vector<Position> valid_positions;
+    static int total_pills;
+    static int max_dist;
 
     uniform_int_distribution<> distribution_valid_pos;
 
@@ -82,6 +84,16 @@ struct State {
         return ghosts_pos;
     }
 
+    inline bool dangerous_ghost_in_position(const Position& pos) const {
+        for (uint i = 0; i < ghosts.size(); ++i) {
+            if (ghosts[i].pos.i == pos.i and ghosts[i].pos.j == pos.j and
+                    (n_rounds_powerpill == 0 or not ghosts[i].maybe_scared))
+                return true;
+        }
+
+        return false;
+    }
+
     inline bool scared_ghost_in_position(const Position& pos) const {
         if (n_rounds_powerpill == 0) return false;
 
@@ -137,17 +149,7 @@ struct State {
         return has_pill(pos) or has_powerpill(pos);
     }
 
-    inline bool is_intersection(const Position& pos) const {
-        int count = 0;
-
-        for (const Direction& d : Direction::LIST) {
-            count += valid_to_move(pos.move_destination(d));
-        }
-
-        return count > 1;
-    }
-
-    inline Direction random_valid_dir(const Position& pos) const {
+    inline vector<Direction> valid_dirs(const Position& pos) const { // TODO: Precompute this in the beggining and store in matrix
         vector<Direction> valid_dirs;
 
         for (const Direction& d : Direction::LIST) {
@@ -155,12 +157,27 @@ struct State {
 
             if (valid_to_move(dest))
                 valid_dirs.push_back(d);
-
         }
 
-        uniform_int_distribution<> distr(0, valid_dirs.size() - 1);
+        return valid_dirs;
+    }
 
-        return valid_dirs[distr(Arguments::random_generator)];
+    inline bool is_intersection(const Position& pos) const {
+        int count = 0;
+
+        for (const Direction& d : Direction::LIST) {
+            count += valid_to_move(pos.move_destination(d));
+        }
+
+        return count > 2;
+    }
+
+    inline Direction random_valid_dir(const Position& pos) const {
+        vector<Direction> valid = valid_dirs(pos);
+
+        uniform_int_distribution<> distr(0, int(valid.size()) - 1);
+
+        return valid[distr(Arguments::random_generator)];
     }
 
     inline Position random_valid_pos() {
@@ -172,6 +189,8 @@ struct State {
     }
 };
 
+int State::total_pills;
+int State::max_dist;
 vector<Position> State::valid_positions;
 
 #endif

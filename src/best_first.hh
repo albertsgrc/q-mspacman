@@ -16,7 +16,7 @@
 using namespace std;
 
 PathResult best_first(Position start, Position end, const State &state) {
-    if (start == end) return PathResult(Direction::STAY);
+    if (start == end) return PathResult(Direction::STAY, 0);
 
     auto comp = [end](const PathStep& a, const PathStep& b) {
         return a.pos.manhattan(end) > b.pos.manhattan(end);
@@ -30,7 +30,7 @@ PathResult best_first(Position start, Position end, const State &state) {
         Position dest = start.move_destination(dir);
 
         if (state.valid_to_move(dest)) {
-            Q.push(PathStep(dest, dir));
+            Q.push(PathStep(dest, dir, 1));
             S[dest.i][dest.j] = true;
     }   }
 
@@ -41,11 +41,11 @@ PathResult best_first(Position start, Position end, const State &state) {
             Position dest = current.pos.move_destination(dir);
 
             if (not S[dest.i][dest.j] and state.valid_to_move(dest)) {
-                Q.push(PathStep(dest, current.initial));
+                Q.push(PathStep(dest, current.initial, current.dist + 1));
                 S[dest.i][dest.j] = true;
     }   }   }
 
-    return Q.empty() ? PathResult(false) : PathResult(Q.top().initial);
+    return Q.empty() ? PathResult(false) : PathResult(Q.top().initial, Q.top().dist);
 }
 
 #endif //PATHFINDING_BEST_FIRST_HH

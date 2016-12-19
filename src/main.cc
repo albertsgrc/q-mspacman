@@ -9,6 +9,7 @@
 #include "pathfinding_pacman_agent.hh"
 #include "input_pacman_agent.hh"
 #include "random_pacman_agent.hh"
+#include "rl_pacman_agent.hh"
 
 int main(int argc, char* argv[]) {
     cout.setf(ios::fixed);
@@ -25,6 +26,7 @@ int main(int argc, char* argv[]) {
         case PATHFINDING: pacman_ai = new Pathfinding_Pacman_Agent(); break;
         case INPUT: pacman_ai = new Input_Pacman_Agent(); break;
         case RANDOM: pacman_ai = new Random_Pacman_Agent(); break;
+        case RL: pacman_ai = new RL_Pacman_Agent(); break;
         default: ensure(false, "Invalid pacman AI Agent enum value");
     }
 
@@ -39,7 +41,11 @@ int main(int argc, char* argv[]) {
     double completion_m2 = 0;
 
     for (int i = 0; i < Arguments::plays; ++i) {
+        int aux = -1;
+        if (i == Arguments::plays - 1) {aux = Arguments::plays; Arguments::plays = 1;}
         game.play();
+        if (aux > -1) Arguments::plays = aux;
+
         total_won += game.result.won;
         double completion = 1 - (game.state.n_pills_left + game.state.n_powerpills_left)/double(total_pills);
         pills_left += game.state.n_pills_left + game.state.n_powerpills_left;
@@ -48,10 +54,15 @@ int main(int argc, char* argv[]) {
         completion_mean += completion_delta/(i+1);
         completion_m2 += completion_delta*(completion - completion_mean);
 
-        if (i%10 == 9)
+        if (i%10 == 9) {
             cout << "\rWins: " << 100*total_won/double(i+1) << '%'
                  << " (" << total_won << "/" << i + 1 << ") ::: "
-                 << 100*completion_mean << "% (" << sqrt(completion_m2/max(1, i)) << "sd) level completion     ";
+                 << 100*completion_mean << "% (" << sqrt(completion_m2/max(1, i)) << "sd) completion"
+                 << (Arguments::pacman_ai_agent == RL ? " ::: " : "     ");
+
+            if (Arguments::pacman_ai_agent == RL)
+                cout << 1.0 - (((RL_Pacman_Agent*)(pacman_ai))->prop_select_best) << " exploration        ";
+        }
 
         cout.flush();
 

@@ -19,9 +19,10 @@ using namespace std;
 struct PathStep {
     Position pos;
     Direction initial;
+    int dist;
 
     PathStep() {}
-    PathStep(const Position& pos, const Direction& initial) : pos(pos), initial(initial) {}
+    PathStep(const Position& pos, const Direction& initial, int dist) : pos(pos), initial(initial), dist(dist) {}
 };
 
 struct PathStepMagic {
@@ -45,10 +46,11 @@ struct CostPathStep {
 struct PathResult {
     Direction dir;
     bool found;
+    int dist;
 
     PathResult() {}
     PathResult(bool found) : found(found) {}
-    PathResult(const Direction& dir) : dir(dir), found(true) {}
+    PathResult(const Direction& dir, int dist) : dir(dir), found(true), dist(dist) {}
 };
 
 // Used by the pathfinding algorithms so as not to allocate and deallocate
@@ -117,8 +119,7 @@ struct PathMagic {
                     if (not S[dest.i][dest.j] and s.valid_to_move(dest)) {
                         Q.push(PathStepMagic(dest, current.dir));
                         S[dest.i][dest.j] = true;
-            }   }   }
-        }
+        }   }   }   }
     }
 };
 

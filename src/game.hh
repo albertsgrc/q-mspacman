@@ -34,8 +34,10 @@ private:
                Arguments::ghost_speed;
     }
 
+    // TODO: Take movement step in account?
     bool game_over_on_collision(Ghost_State& ghost) {
         if (state.is_scared(ghost)) {
+            pacman->notify_killed_ghost();
             ghost.maybe_scared = false;
             ghost.n_rounds_revive = Arguments::n_rounds_ghost_revive;
             ghost.pos = Position(-1,-1);
@@ -129,7 +131,9 @@ public:
             }
         }
 
+        state.total_pills = state.n_pills_left + state.n_powerpills_left;
         state.distribution_valid_pos = uniform_int_distribution<>(0, state.valid_positions.size() - 1);
+        state.max_dist = state.valid_positions.size()*state.valid_positions.size();
 
         SeenMatrix::init(rows, cols);
         PathMagic::compute(state);
@@ -156,7 +160,7 @@ public:
         while (state.n_powerpills_left + state.n_pills_left > 0) { // break if game_over
             if (Arguments::plays == 1) {
                 cout.flush();
-                usleep(160000*Arguments::ghost_speed);
+                usleep(200000*Arguments::ghost_speed);
             }
 
             update_ghost_states();
@@ -194,10 +198,12 @@ public:
                             case State::PILL:
                                 state.maze[next_pos.i][next_pos.j] = State::FREE;
                                 --state.n_pills_left;
+                                pacman->notify_eaten_pill();
                                 break;
                             case State::POWER_PILL:
                                 state.maze[next_pos.i][next_pos.j] = State::FREE;
                                 --state.n_powerpills_left;
+                                pacman->notify_eaten_powerpill();
 
                                 for (Ghost_State& ghost : state.ghosts) ghost.maybe_scared = true;
 
@@ -210,6 +216,7 @@ public:
                 }
             }
             else {
+                pacman->notify_reverse_direction();
                 state.pacman.step = (1 - state.pacman.step)*Arguments::pacman_speed;
                 state.pacman.dir = pacman_direction;
             }
@@ -265,8 +272,8 @@ public:
             cout << (game_over ? "LOST" : "WON") << endl;
         }
 
-        this->result.state = this->state;
         this->result.won = not game_over;
+        pacman->notify_game_result(this->result.won);
         return this->result;
     }
 };

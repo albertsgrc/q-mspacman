@@ -16,10 +16,10 @@
 
 PathResult wsp(const Position& start,
                           function<bool(Position)> reached_end,
-                          State state,
+                          const State& state,
                           function<int(Position)> cell_cost) {
 
-    if (reached_end(start)) return PathResult(Direction::STAY);
+    if (reached_end(start)) return PathResult(Direction::STAY, 0);
 
     auto comp = [](const CostPathStep& a, const CostPathStep& b) {
         return a.cost > b.cost;
@@ -56,7 +56,7 @@ PathResult wsp(const Position& start,
         }
     }
 
-    return Q.empty() ? PathResult(false) : PathResult(Q.top().initial);
+    return Q.empty() ? PathResult(false) : PathResult(Q.top().initial, 0);
 }
 
 #endif //SRC_WSP_HH

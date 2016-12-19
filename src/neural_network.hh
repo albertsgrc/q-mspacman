@@ -30,6 +30,8 @@ private:
         output = (double*) malloc(sizeof(double)*n_outputs);
         weights = (double*) malloc(sizeof(double)*n_weights);
         bias = (double*) malloc(sizeof(double)*n_bias);
+        delta_output = (double*) malloc(sizeof(double)*n_outputs);
+        delta_hidden = (double*) malloc(sizeof(double)*n_hidden_layers*n_hidden_neurons);
     }
 public:
     double* input;
@@ -39,6 +41,9 @@ public:
     double* weights;
     double* bias;
 
+    double* delta_output;
+    double* delta_hidden;
+
     uint n_inputs;
     uint n_hidden_layers;
     uint n_hidden_neurons;
@@ -47,6 +52,16 @@ public:
     uint n_bias;
 
     double learning_rate;
+
+    ~Neural_Network() {
+        free(input);
+        free(hidden);
+        free(output);
+        free(weights);
+        free(bias);
+        free(delta_output);
+        free(delta_hidden);
+    }
 
     Neural_Network(const string& path, double learning_rate) : learning_rate(learning_rate) { load(path); }
 
@@ -73,6 +88,8 @@ public:
     static inline double derivative_sigmoid(double x) {
         return x*(1.0 - x);
     }
+
+    inline void set_learning_rate(double v) { learning_rate = v; }
 
     double* recall() {
         memcpy(hidden, bias, sizeof(double)*n_hidden_neurons*n_hidden_layers);
@@ -114,9 +131,6 @@ public:
     }
 
     double backpropagate(double* given, double* expected) {
-        double* delta_output = (double*) malloc(sizeof(double)*n_outputs);
-        double* delta_hidden = (double*) malloc(sizeof(double)*n_hidden_layers*n_hidden_neurons);
-
         double mse = 0;
 
         // Delta for outputs + weight update for outputs
@@ -249,15 +263,15 @@ public:
 
     void write_neurons(ostream& o) {
         cout << "Inputs: ";
-        for (int i = 0; i < n_inputs; ++i) cout << input[i] << ' ';
+        for (uint i = 0; i < n_inputs; ++i) cout << input[i] << ' ';
         cout << endl << endl;
-        for (int i = 0; i < n_hidden_layers; ++i) {
+        for (uint i = 0; i < n_hidden_layers; ++i) {
             cout << "Hidden layer " << i << ": ";
-            for (int j = 0; j < n_hidden_neurons; ++j) cout << hiddenat(i, j) << ' ';
+            for (uint j = 0; j < n_hidden_neurons; ++j) cout << hiddenat(i, j) << ' ';
             cout << endl;
         }
         cout << endl << "Outputs: ";
-        for (int i = 0; i < n_outputs; ++i) cout << output[i] << ' ';
+        for (uint i = 0; i < n_outputs; ++i) cout << output[i] << ' ';
         cout << endl;
     }
 };
