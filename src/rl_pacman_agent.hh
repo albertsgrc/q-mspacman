@@ -45,10 +45,9 @@ public:
 
         Direction best_dir;
         double max_q = numeric_limits<double>::lowest();
-        double selection_goodness_sum = 0;
+        double max_input[N_INPUTS];
 
         vector<Direction> valid_dirs = s.valid_dirs(pos);
-        vector<double> selection_goodness(valid_dirs.size());
 
         for (uint i = 0; i < valid_dirs.size(); ++i) {
             const Direction& d = valid_dirs[i];
@@ -70,22 +69,17 @@ public:
 
             double q = nn.recall(input)[0];
 
-            selection_goodness_sum +=
-                selection_goodness[i] = exp(Arguments::exploration_factor_decrease_speed_factor*q*n_games*total_plays_inverse);
-
             if (q > max_q) {
-                memcpy(previous_input, input, N_INPUTS*sizeof(double));
+                memcpy(max_input, input, N_INPUTS*sizeof(double));
                 max_q = q;
                 best_dir = d;
             }
         }
 
-        double selection_point = selection_goodness_sum*randdouble();
-        double currsum = selection_goodness[0];
-
-        uint i = 0;
-        while (currsum <= selection_point and i + 1 < valid_dirs.size()) currsum += selection_goodness[++i];
-        Direction take = valid_dirs[i];
+        double adv = double(n_games)/Arguments::plays;
+        Direction take = adv <= 0.2 ? valid_dirs[randint(valid_dirs.size())] :
+                         adv >= 0.8 ? best_dir :
+                randdouble() <= (double(n_games)/Arguments::plays-0.2)/0.6 ? best_dir : valid_dirs[randint(valid_dirs.size())];
 
         if (take == best_dir) ++n_best_selected;
         ++total_possible;
@@ -93,8 +87,11 @@ public:
         // If the game ended previously there's no sense of future reward for the last move of the game
         // Note that the first train of all games is a bit sketchy (all inputs 0, reward 0) but doesn't matter
         // in the long term
+        //cout << reward << endl;
         double expected[1] = { reward + (s.round > 1 ? Arguments::discount_factor*max_q : 0) };
         nn.train(previous_input, expected);
+
+        memcpy(previous_input, max_input, N_INPUTS*sizeof(double));
 
         reward = Arguments::reward_step;
 
