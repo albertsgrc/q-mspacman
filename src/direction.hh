@@ -25,6 +25,9 @@ public:
         return Direction(-this->i, -this->j);
     }
 
+    inline bool isOpposite(const Direction& o) const {
+        return o.i == -i and o.j == -j;
+    }
 
     static inline Direction random() {
         return LIST[randint(NUMBER)];

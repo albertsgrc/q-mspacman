@@ -7,6 +7,7 @@
 class Agent_State {
 public:
     Position pos;
+    Position prev;
     Direction dir;
     float step;
 
@@ -15,6 +16,7 @@ public:
 
     void operator=(const Agent_State& o) {
         pos = o.pos;
+        prev = o.prev;
         dir = o.dir;
         step = o.step;
     }

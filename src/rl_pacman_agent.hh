@@ -80,7 +80,8 @@ public:
         double max_input[N_INPUTS];
         int maxdir = -1;
 
-        vector<Direction> valid_dirs = s.valid_dirs(pos);
+        vector<Direction> valid_dirs, valid_dirs_no_opposite;
+        s.valid_dirs_extended(pos, s.pacman.dir, valid_dirs, valid_dirs_no_opposite);
 
         for (uint j = 0; j < valid_dirs.size(); ++j) {
             const Direction& d = valid_dirs[j];
@@ -100,7 +101,19 @@ public:
         }
 
         double adv = double(n_games)/Arguments::plays;
-        Direction take = randdouble() > clamp(adv, 0.2, 0.95) ? valid_dirs[randint(valid_dirs.size())] : best_dir;
+        Direction take;
+        if (randdouble() >= clamp(adv, 0.2, 0.95)) {
+            if (Arguments::smart_exploration) {
+                if (s.pacman.pos != s.pacman.prev)  {
+                    take = valid_dirs_no_opposite.size() > 0 ?
+                           valid_dirs_no_opposite[randint(valid_dirs_no_opposite.size())] :
+                           s.pacman.dir.opposite();
+                }
+                else take = s.pacman.dir;
+            }
+            else take = valid_dirs[randint(valid_dirs.size())];
+        }
+        else take = best_dir;
 
         if (take == best_dir) ++n_best_selected;
         ++total_possible;

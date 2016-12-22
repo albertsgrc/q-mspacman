@@ -12,14 +12,10 @@
 #include <cmath>
 
 class Random_Pacman_Agent: public Agent {
-    Position previous;
 
     // In this case ghost_id can be ignored
     Direction take_action(const State& s, uint ghost_id) {
-        if (s.pacman.pos != previous) {
-            previous = s.pacman.pos;
-            return s.random_valid_dir(s.pacman.pos);
-        }
+        if (s.pacman.pos != s.pacman.prev) return s.random_valid_dir(s.pacman.pos);
         else return s.pacman.dir;
     }
 };

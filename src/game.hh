@@ -172,6 +172,10 @@ public:
 
             Direction pacman_direction = pacman->take_action(state, 0);
 
+            Position pacman_previous_pos = state.pacman.pos;
+            vector<Position> ghost_previous_pos(4);
+            for (const Ghost_State& g : state.ghosts) ghost_previous_pos.push_back(g.pos);
+
             // TODO: Maybe process movements stochastically to guarantee equality?
 
             if (state.pacman.dir == pacman_direction) {
@@ -263,6 +267,9 @@ public:
                 }
 
             }
+
+            state.pacman.prev = pacman_previous_pos;
+            for (uint i = 0; i < state.ghosts.size(); ++i) state.ghosts[i].prev = ghost_previous_pos[i];
 
             if (Arguments::plays == 1) cout << state << endl;
         }

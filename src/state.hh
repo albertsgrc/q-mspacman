@@ -172,6 +172,21 @@ struct State {
         return valid_dirs;
     }
 
+    inline vector<Direction> valid_dirs_extended(const Position& pos, const Direction &d_op, vector<Direction>& valid_dirs,
+                                        vector<Direction>& valid_dirs_no_opposite) const {
+
+        for (const Direction& d : Direction::LIST) {
+            Position dest = pos.move_destination(d);
+
+            if (valid_to_move(dest)) {
+                valid_dirs.push_back(d);
+                if (not d.isOpposite(d_op)) valid_dirs_no_opposite.push_back(d);
+            }
+        }
+
+        return valid_dirs;
+    }
+
     inline bool is_intersection(const Position& pos) const {
         int count = 0;
 
