@@ -11,16 +11,13 @@
 class Ghost_Agent: public Agent {
 
 public:
-    Position prev;
 
     virtual ~Ghost_Agent() {}
 
     Direction take_action(const State& s, uint ghost_id) {
         const Ghost_State& ghost = s.ghosts[ghost_id];
 
-        if (ghost.pos != prev) {
-            prev = ghost.pos;
-
+        if (ghost.pos != ghost.prev) {
             if (s.is_scared(ghost)) {
                 return s.try_to_avoid(ghost.pos, PathMagic::from_to(ghost.pos, s.pacman.pos));
             }

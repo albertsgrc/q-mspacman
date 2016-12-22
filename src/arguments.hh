@@ -75,6 +75,8 @@ const double DFL_REWARD_STEP = -5;
 
 const double DFL_DISCOUNT_FACTOR = 0.95;
 
+const bool DFL_SMART_EXPLORATION = true;
+
 typedef unsigned int uint;
 void error(const string& msg) {
     perror(msg.c_str());
@@ -124,6 +126,7 @@ public:
     static double reward_reverse;
     static double reward_step;
     static double discount_factor;
+    static bool smart_exploration;
 
     static void init(int argc, char* argv[]);
 
@@ -165,6 +168,7 @@ double Arguments::reward_lose;
 double Arguments::reward_reverse;
 double Arguments::reward_step;
 double Arguments::discount_factor;
+bool Arguments::smart_exploration;
 
 void Arguments::init(int argc, char* argv[]) {
     Arguments::layout_path = DFL_LAYOUT_PATH;
@@ -195,6 +199,7 @@ void Arguments::init(int argc, char* argv[]) {
     Arguments::reward_reverse = DFL_REWARD_REVERSE;
     Arguments::reward_step = DFL_REWARD_STEP;
     Arguments::discount_factor = DFL_DISCOUNT_FACTOR;
+    Arguments::smart_exploration = DFL_SMART_EXPLORATION;
 
     for (int i = 1; i < argc; ++i) treat_arg(argv[i]);
 }
@@ -237,6 +242,7 @@ void Arguments::assign_argument(const string& key, const string& value) {
     else if (key == "reward_reverse") reward_reverse = stod(value);
     else if (key == "reward_step") reward_step = stod(value);
     else if (key == "discount_factor") discount_factor = stod(value);
+    else if (key == "smart_exploration") smart_exploration = value != "0" and value != "false";
     else error("Invalid argument name '" + key + "'");
 }
 
