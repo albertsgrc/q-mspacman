@@ -34,6 +34,8 @@ private:
         delta_hidden = (double*) malloc(sizeof(double)*n_hidden_layers*n_hidden_neurons);
     }
 public:
+    bool reserved;
+
     double* input;
     double* hidden; // Matrix
     double* output;
@@ -54,16 +56,19 @@ public:
     double learning_rate;
 
     ~Neural_Network() {
-        free(input);
-        free(hidden);
-        free(output);
-        free(weights);
-        free(bias);
-        free(delta_output);
-        free(delta_hidden);
+        if (reserved) {
+            free(input);
+            free(hidden);
+            free(output);
+            free(weights);
+            free(bias);
+            free(delta_output);
+            free(delta_hidden);
+        }
     }
 
-    Neural_Network(const string& path, double learning_rate) : learning_rate(learning_rate) { load(path); }
+    Neural_Network() : reserved(false) {}
+    Neural_Network(const string& path, double learning_rate) : reserved(true), learning_rate(learning_rate) { load(path); }
 
     Neural_Network(uint n_inputs, uint n_hidden_layers, uint n_hidden_neurons, uint n_outputs, double learning_rate)
         : n_inputs(n_inputs), n_hidden_layers(n_hidden_layers),

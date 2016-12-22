@@ -15,7 +15,8 @@
 #include "pathfinding.hh"
 using namespace std;
 
-PathResult bfs(const Position& start, function<bool(const Position&)> reached_end, const State& state) {
+PathResult bfs(const Position& start, function<bool(const Position&)> reached_end, const State& state,
+               function<void(const Position&)> fPos = [](const Position& p) {}, int maxNodes = MAXINT) {
     if (reached_end(start)) return PathResult(Direction::STAY, 0);
 
     queue<PathStep> Q;
@@ -31,8 +32,11 @@ PathResult bfs(const Position& start, function<bool(const Position&)> reached_en
             S[dest.i][dest.j] = true;
     }   }
 
-    while (not Q.empty() and not reached_end(Q.front().pos)) {
+    int nVisited = 0;
+    while (not Q.empty() and nVisited < maxNodes and not reached_end(Q.front().pos)) {
+        ++nVisited;
         PathStep current = Q.front(); Q.pop();
+        fPos(current.pos);
 
         for (const Direction& dir : Direction::LIST) {
             Position dest = current.pos.move_destination(dir);

@@ -20,7 +20,7 @@ const string LAYOUT_FOLDER = "./layouts/";
 
 const string DFL_LAYOUT_PATH = LAYOUT_FOLDER + "originalClassic.lay";
 
-const Pacman_AI_Agent DFL_PACMAN_AI_AGENT = PATHFINDING;
+const Pacman_AI_Agent DFL_PACMAN_AI_AGENT = RL;
 
 const float DFL_PACMAN_SPEED = 0.5;
 const float DFL_GHOST_SPEED = 0.85; // Relative to pacman
@@ -50,17 +50,17 @@ const int DFL_N_ROUNDS_GHOST_REVIVE = 15;
 // and so on. Note that round here also means the time it takes for pacman to move one cell
 const int DFL_N_ROUNDS_BETWEEN_GHOSTS_START = 4;
 
-const int DFL_PLAYS = 1;
+const int DFL_PLAYS = 100000;
 
 const size_t DFL_RANDOM_SEED = time(0);
 
 /** NEURAL NETWORK ARGUMENTS **/
 
 const int DFL_N_HIDDEN_LAYERS = 1;
-const int DFL_N_HIDDEN_NEURONS = 50;
+const int DFL_N_HIDDEN_NEURONS = 100;
 const double DFL_MIN_WEIGHT_INIT = -0.3;
 const double DFL_MAX_WEIGHT_INIT = 0.3;
-const double DFL_LEARNING_RATE = 0.0005;
+const double DFL_LEARNING_RATE = 0.0003;
 
 
 /** Q-LEARNING ARGUMENTS **/
@@ -71,7 +71,7 @@ const double DFL_REWARD_KILL_GHOST = 20;
 const double DFL_REWARD_WIN = 50;
 const double DFL_REWARD_LOSE = -350;
 const double DFL_REWARD_REVERSE = -6;
-const double DFL_REWARD_STEP = -5;
+const double DFL_REWARD_STEP = -10;
 
 const double DFL_DISCOUNT_FACTOR = 0.95;
 

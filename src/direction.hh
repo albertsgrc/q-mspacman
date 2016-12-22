@@ -29,6 +29,10 @@ public:
     static inline Direction random() {
         return LIST[randint(NUMBER)];
     }
+
+    static int index(const Direction& d) {
+        return (d.j == 1) + ((d.i != 0) << 1);
+    }
 };
 
 inline bool operator!=(const Direction& a, const Direction& b) {

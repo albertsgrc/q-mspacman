@@ -137,6 +137,9 @@ public:
         SeenMatrix::init(rows, cols);
         PathMagic::compute(state);
 
+        state.max_dist_inverse = 1.0/state.max_dist;
+        state.total_pills_inverse = 1.0/state.total_pills;
+
         initialState = state;
     }
 

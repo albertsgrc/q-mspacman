@@ -58,10 +58,10 @@ int main(int argc, char* argv[]) {
             cout << "\rWins: " << 100*total_won/double(i+1) << '%'
                  << " (" << total_won << "/" << i + 1 << ") ::: "
                  << 100*completion_mean << "% (" << sqrt(completion_m2/max(1, i)) << "sd) completion"
-                 << (Arguments::pacman_ai_agent == RL ? " ::: " : "     ");
+                 << (Arguments::pacman_ai_agent == RL ? " ::: " : "");
 
             if (Arguments::pacman_ai_agent == RL)
-                cout << 100*(((RL_Pacman_Agent*)(pacman_ai))->prop_select_best) << "% best action        ";
+                cout << 100*(((RL_Pacman_Agent*)(pacman_ai))->prop_select_best) << "% best action";
         }
 
         cout.flush();
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
         game.reset();
     }
 
-    if (Arguments::pacman_ai_agent == RL) ((RL_Pacman_Agent*)(pacman_ai))->nn.write_file("../data/neural.txt");
+    //if (Arguments::pacman_ai_agent == RL) ((RL_Pacman_Agent*)(pacman_ai))->nn.write_file("../data/neural.txt");
 
     cout << endl;
 }

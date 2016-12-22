@@ -24,6 +24,8 @@ struct State {
     static vector<Position> valid_positions;
     static int total_pills;
     static int max_dist;
+    static double max_dist_inverse;
+    static double total_pills_inverse;
 
     uniform_int_distribution<> distribution_valid_pos;
 
@@ -71,6 +73,14 @@ struct State {
           << "Rounds powerpill: " << s.n_rounds_powerpill;
 
         return o;
+    }
+
+    inline bool is_wall(const Position& pos) const {
+        return maze[pos.i][pos.j] == WALL;
+    }
+
+    inline bool inside_boundaries(const Position& pos)const {
+        return between(pos.i, 0, maze.rows()-1) and between(pos.j, 0, maze.cols()-1);
     }
 
     inline vector<int> ghosts_in_position(const Position& pos) const {
@@ -191,6 +201,8 @@ struct State {
 
 int State::total_pills;
 int State::max_dist;
+double State::max_dist_inverse;
+double State::total_pills_inverse;
 vector<Position> State::valid_positions;
 
 #endif
