@@ -12,24 +12,21 @@
 #include "neural_network.hh"
 #include "arguments.hh"
 #include "bfs.hh"
+#include "inputs.hh"
 
 class RL_Pacman_Agent: public Agent {
 public:
-    static const int N_INPUTS = 6;
+    static const int N_INPUTS = 15;
 
     double reward;
 
     double previous_input[N_INPUTS];
 
     uint n_games;
-    double total_plays_inverse;
-
-    double n_rounds_powerpill_inverse;
 
     Neural_Network nn;
 
-    RL_Pacman_Agent() : reward(0), n_games(1), total_plays_inverse(1.0/Arguments::plays),
-                        n_rounds_powerpill_inverse(1.0/Arguments::n_rounds_powerpill),
+    RL_Pacman_Agent() : reward(0), n_games(1),
                         nn(N_INPUTS, Arguments::n_hidden_layers, Arguments::n_hidden_neurons, 1, Arguments::learning_rate)
     {
         for (int i = 0; i < N_INPUTS; ++i) previous_input[i] = 0.0;
@@ -40,26 +37,21 @@ public:
 
         double input[N_INPUTS];
 
-        input[0] = (s.total_pills - (s.n_pills_left + s.n_powerpills_left))*s.total_pills_inverse;
-        input[1] = s.n_rounds_powerpill*n_rounds_powerpill_inverse;
+        Inputs::compute_undirected(input, s);
 
         // Input number of rounds ?
-
         Direction best_dir;
         double max_q = numeric_limits<double>::lowest();
         double max_input[N_INPUTS];
 
-        vector<Direction> valid_dirs, valid_dirs_no_opposite;
-        s.valid_dirs_extended(pos, s.pacman.dir, valid_dirs, valid_dirs_no_opposite);
+        vector<char>& valid_dirs = PathMagic::dirs(pos);
+        vector<Direction> valid_dirs_no_opposite;
 
-        for (uint j = 0; j < valid_dirs.size(); ++j) {
-            const Direction& d = valid_dirs[j];
+        for (char i : valid_dirs) {
+            const Direction& d = Direction::LIST[(int)i];
+            if (not d.isOpposite(s.pacman.dir)) valid_dirs_no_opposite.push_back(d);
 
-            const Position& rpos = pos.move_destination(d);
-            input[2] = bfs(rpos, [s](const Position& p){ return s.has_any_pill(p); }, s).dist*s.max_dist_inverse;
-            input[3] = bfs(rpos, [s](const Position& p){ return s.dangerous_ghost_in_position(p); }, s).dist*s.max_dist_inverse;
-            input[4] = bfs(rpos, [s](const Position& p){ return s.is_intersection(p); }, s).dist*s.max_dist_inverse;
-            input[5] = s.pacman.dir == d;
+            Inputs::compute_directed(input, d, s);
 
             double q = nn.recall(input)[0];
 
@@ -72,7 +64,7 @@ public:
 
         double adv = double(n_games)/Arguments::plays;
         Direction take;
-        if (randdouble() >= clamp(adv, 0.2, 0.95)) {
+        if (randdouble() >= 0.9 and adv < 0.95) { // epsilon-learning (prob. 0.1) is also really good!
             if (Arguments::smart_exploration) {
                 if (s.pacman.pos != s.pacman.prev)  {
                     take = valid_dirs_no_opposite.size() > 0 ?
@@ -81,7 +73,7 @@ public:
                 }
                 else take = s.pacman.dir;
             }
-            else take = valid_dirs[randint(valid_dirs.size())];
+            else take = Direction::LIST[(int)valid_dirs[randint(valid_dirs.size())]];
         }
         else take = best_dir;
 

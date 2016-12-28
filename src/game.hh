@@ -5,6 +5,7 @@
 #include <sstream>
 #include <unistd.h>
 #include <random>
+#include <algorithm>
 #include <vector>
 
 #include "agent.hh"
@@ -115,8 +116,11 @@ public:
                 char cell; layout_file >> cell;
                 state.maze[i][j] = cell != State::PACMAN and cell != State::GHOST ? cell : State::FREE;
 
-                state.n_pills_left += cell == State::PILL;
+                state.n_normal_pills_left += cell == State::PILL;
                 state.n_powerpills_left += cell == State::POWER_PILL;
+
+                if (cell == State::PILL) state.normal_pills.insert(state.valid_positions.size());
+                else if (cell == State::POWER_PILL) state.powerpills.insert(state.valid_positions.size());
 
                 if (cell != State::WALL) {
                     state.valid_positions.push_back(Position(i, j));
@@ -131,14 +135,13 @@ public:
             }
         }
 
-        state.total_pills = state.n_pills_left + state.n_powerpills_left;
+        state.total_pills = state.n_normal_pills_left + state.n_powerpills_left;
+        state.total_powerpills = state.n_powerpills_left;
+        state.total_normal_pills = state.n_normal_pills_left;
         state.distribution_valid_pos = uniform_int_distribution<>(0, state.valid_positions.size() - 1);
 
         SeenMatrix::init(rows, cols);
         PathMagic::compute(state);
-
-        state.max_dist_inverse = 1.0/state.max_dist;
-        state.total_pills_inverse = 1.0/state.total_pills;
 
         initialState = state;
     }
@@ -159,7 +162,7 @@ public:
 
         if (Arguments::plays == 1) cout << state << endl;
 
-        while (state.n_powerpills_left + state.n_pills_left > 0) { // break if game_over
+        while (state.n_powerpills_left + state.n_normal_pills_left > 0) { // break if game_over
             if (Arguments::plays == 1) {
                 cout.flush();
                 usleep(200000*Arguments::ghost_speed);
@@ -168,6 +171,7 @@ public:
             update_ghost_states();
 
             ++state.round;
+
             state.n_rounds_powerpill = max(0, state.n_rounds_powerpill - 1);
 
             Direction pacman_direction = pacman->take_action(state, 0);
@@ -203,15 +207,19 @@ public:
                         switch(cell_content) {
                             case State::PILL:
                                 state.maze[next_pos.i][next_pos.j] = State::FREE;
-                                --state.n_pills_left;
+                                --state.n_normal_pills_left;
+                                state.normal_pills.erase(PathMagic::id(next_pos));
                                 pacman->notify_eaten_pill();
                                 break;
                             case State::POWER_PILL:
                                 state.maze[next_pos.i][next_pos.j] = State::FREE;
                                 --state.n_powerpills_left;
+                                state.powerpills.erase(PathMagic::id(next_pos));
                                 pacman->notify_eaten_powerpill();
 
-                                for (Ghost_State& ghost : state.ghosts) ghost.maybe_scared = true;
+                                for (Ghost_State& ghost : state.ghosts) {
+                                    ghost.maybe_scared = true;
+                                }
 
                                 state.n_rounds_powerpill = Arguments::n_rounds_powerpill;
                                 break;

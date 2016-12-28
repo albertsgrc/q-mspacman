@@ -34,8 +34,9 @@ int main(int argc, char* argv[]) {
 
     game.load_maze();
 
+    Inputs::init(game.state);
+
     uint total_won = 0;
-    uint total_pills = game.state.n_pills_left + game.state.n_powerpills_left;
     uint pills_left = 0;
     double completion_mean = 0;
     double completion_m2 = 0;
@@ -47,8 +48,8 @@ int main(int argc, char* argv[]) {
         if (aux > -1) Arguments::plays = aux;
 
         total_won += game.result.won;
-        double completion = 1 - (game.state.n_pills_left + game.state.n_powerpills_left)/double(total_pills);
-        pills_left += game.state.n_pills_left + game.state.n_powerpills_left;
+        double completion = 1 - (game.state.n_normal_pills_left + game.state.n_powerpills_left)/double(game.state.total_pills);
+        pills_left += game.state.n_normal_pills_left + game.state.n_powerpills_left;
 
         double completion_delta = completion - completion_mean;
         completion_mean += completion_delta/(i+1);

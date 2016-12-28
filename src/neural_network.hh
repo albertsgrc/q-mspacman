@@ -25,7 +25,6 @@ using namespace std;
 class Neural_Network {
 private:
     void reserve() {
-        input = (double*) malloc(sizeof(double)*n_inputs);
         hidden = (double*) malloc(sizeof(double)*n_hidden_layers*n_hidden_neurons);
         output = (double*) malloc(sizeof(double)*n_outputs);
         weights = (double*) malloc(sizeof(double)*n_weights);
@@ -131,8 +130,39 @@ public:
     }
 
     double* recall(double* input_values) {
-        for (uint i = 0; i < n_inputs; ++i) input[i] = input_values[i];
-        return recall();
+        input = input_values;
+
+        memcpy(hidden, bias, sizeof(double)*n_hidden_neurons*n_hidden_layers);
+        memcpy(output, bias + n_hidden_neurons*n_hidden_layers, sizeof(double)*n_outputs);
+
+        // Input to 1st hidden layer
+        for (uint input_from = 0; input_from < n_inputs; ++input_from) {
+            for (uint hidden_to = 0; hidden_to < n_hidden_neurons; ++hidden_to)
+                hiddenat(0, hidden_to) += input[input_from]*inputweightat(input_from, hidden_to);
+        }
+
+        for (uint neuron = 0; neuron < n_hidden_neurons; ++neuron)
+            hiddenat(0, neuron) = sigmoid(hiddenat(0, neuron));
+
+        // layer - 1 to layer
+        for (uint layer_to = 1; layer_to < n_hidden_layers; ++layer_to) {
+            for (uint neuron_from = 0; neuron_from < n_hidden_neurons; ++neuron_from)
+                for (uint neuron_to = 0; neuron_to < n_hidden_neurons; ++neuron_to)
+                    hiddenat(layer_to, neuron_to) += hiddenat(layer_to - 1, neuron_from)
+                                                     *
+                                                     hiddenweightat(layer_to, neuron_from, neuron_to);
+
+            for (uint neuron = 0; neuron < n_hidden_neurons; ++neuron)
+                hiddenat(layer_to, neuron) = sigmoid(hiddenat(layer_to, neuron));
+        }
+
+        // Last layer to output
+        uint last_layer = n_hidden_layers - 1;
+        for (uint hidden_from = 0; hidden_from < n_hidden_neurons; ++hidden_from)
+            for (uint output_to = 0; output_to < n_outputs; ++output_to)
+                output[output_to] += hiddenat(last_layer, hidden_from)*outputweightat(hidden_from, output_to);
+
+        return output;
     }
 
     double backpropagate(double* given, double* expected) {
@@ -206,7 +236,7 @@ public:
         file.open(path);
         file >> n_inputs >> n_hidden_layers >> n_hidden_neurons >> n_outputs;
 
-        reserve();
+        if (not reserved) reserve();
 
         for (uint i = 0; i < n_bias; ++i)    file >> bias[i];
         for (uint i = 0; i < n_weights; ++i) file >> weights[i];
@@ -256,7 +286,7 @@ public:
             o << endl;
         }
         o << endl;
-        
+
         for (uint hidden_from = 0; hidden_from < n_hidden_neurons; ++hidden_from) {
             o << outputweightat(hidden_from, 0);
             for (uint hidden_to = 1; hidden_to < n_outputs; ++hidden_to)
@@ -267,17 +297,17 @@ public:
     }
 
     void write_neurons(ostream& o) {
-        cout << "Inputs: ";
-        for (uint i = 0; i < n_inputs; ++i) cout << input[i] << ' ';
-        cout << endl << endl;
+        o << "Inputs: ";
+        for (uint i = 0; i < n_inputs; ++i) o << input[i] << ' ';
+        o << endl << endl;
         for (uint i = 0; i < n_hidden_layers; ++i) {
-            cout << "Hidden layer " << i << ": ";
-            for (uint j = 0; j < n_hidden_neurons; ++j) cout << hiddenat(i, j) << ' ';
-            cout << endl;
+            o << "Hidden layer " << i << ": ";
+            for (uint j = 0; j < n_hidden_neurons; ++j) o << hiddenat(i, j) << ' ';
+            o << endl;
         }
-        cout << endl << "Outputs: ";
-        for (uint i = 0; i < n_outputs; ++i) cout << output[i] << ' ';
-        cout << endl;
+        o << endl << "Outputs: ";
+        for (uint i = 0; i < n_outputs; ++i) o << output[i] << ' ';
+        o << endl;
     }
 };
 

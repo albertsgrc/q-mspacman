@@ -1,6 +1,8 @@
 #ifndef STATE_HH
 #define STATE_HH
 
+#include <unordered_set>
+
 #include "utils.hh"
 #include "position.hh"
 #include "ghost_state.hh"
@@ -24,8 +26,8 @@ struct State {
     static vector<Position> valid_positions;
     static int total_pills;
     static int max_dist;
-    static double max_dist_inverse;
-    static double total_pills_inverse;
+    static int total_powerpills;
+    static int total_normal_pills;
 
     uniform_int_distribution<> distribution_valid_pos;
 
@@ -34,27 +36,31 @@ struct State {
     // Number of power pill rounds left. 0 if no power pill in action
     int n_rounds_powerpill;
 
-    int n_pills_left;
+    int n_normal_pills_left;
 
     int n_powerpills_left;
 
+    unordered_set<int> normal_pills;
+    unordered_set<int> powerpills;
 
     vector<Ghost_State> ghosts;
     Agent_State pacman;
 
     State() :
-        round(0), n_rounds_powerpill(0), n_pills_left(0),
+        round(0), n_rounds_powerpill(0), n_normal_pills_left(0),
         n_powerpills_left(0) {}
 
     inline void operator=(const State& o) {
         maze = o.maze;
 
-        n_pills_left = o.n_pills_left;
+        n_normal_pills_left = o.n_normal_pills_left;
         n_powerpills_left = o.n_powerpills_left;
         ghosts = o.ghosts;
         pacman = o.pacman;
         round = o.round;
         n_rounds_powerpill = o.n_rounds_powerpill;
+        normal_pills = o.normal_pills;
+        powerpills = o.powerpills;
     }
 
     friend ostream& operator<<(ostream& o, const State& s) {
@@ -68,7 +74,7 @@ struct State {
 
         o << "Round " << s.round << ":" << endl
           << maze_aux << endl
-          << "Pills left: " << s.n_pills_left << endl
+          << "Pills left: " << s.n_normal_pills_left << endl
           << "Powerpills left: " << s.n_powerpills_left << endl
           << "Rounds powerpill: " << s.n_rounds_powerpill;
 
@@ -187,16 +193,6 @@ struct State {
         return valid_dirs;
     }
 
-    inline bool is_intersection(const Position& pos) const {
-        int count = 0;
-
-        for (const Direction& d : Direction::LIST) {
-            count += valid_to_move(pos.move_destination(d));
-        }
-
-        return count > 2;
-    }
-
     inline Direction random_valid_dir(const Position& pos) const {
         vector<Direction> valid = valid_dirs(pos);
 
@@ -216,8 +212,8 @@ struct State {
 
 int State::total_pills;
 int State::max_dist;
-double State::max_dist_inverse;
-double State::total_pills_inverse;
+int State::total_normal_pills;
+int State::total_powerpills;
 vector<Position> State::valid_positions;
 
 #endif
