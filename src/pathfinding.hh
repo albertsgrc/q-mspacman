@@ -66,12 +66,14 @@ struct PathResult {
 };
 
 struct IntersectionPathStep {
-    Position pos;
-    int previous_intersection;
+    int intersection;
+    int distance;
+    char direction;
+    int camefrom;
 
     IntersectionPathStep() {}
-    IntersectionPathStep(const Position& pos, int previous_intersection) :
-            pos(pos), previous_intersection(previous_intersection) {}
+    IntersectionPathStep(int intersection, int distance, char direction, int camefrom) :
+            intersection(intersection), distance(distance), direction(direction), camefrom(camefrom) {}
 };
 
 // Used by the pathfinding algorithms so as not to allocate and deallocate
@@ -102,7 +104,6 @@ struct PathMagic {
     static vector<vector<int>> enclosing_intersections; // List of enclosing intersections for each position
     static vector<vector<int>> n_intersections; // Number of intersections that must be crossed in order to get from i to j
     static vector<int> intersections; // Vector of intersections
-    static vector<vector<int>> intersections_graph; // Intersections graph
     static vector<vector<int>> distances; // Distance from i to j
     static vector<vector<char>> direction_from_to; // Direction of the shortest path from i to j
     static vector<vector<int>> index_from_pos; // Index in the vector of valid positions for a given position
@@ -118,12 +119,38 @@ struct PathMagic {
         return Direction::LIST[(int)direction_from_to[id_from][id_to]];
     }
 
-    static inline int dist(const Position&from, const Position& to) {
-        return from.i == -1 or to.i == -1 ? MAXINT : distances[id(from)][id(to)];
+    static inline int corrected_dist(const Position& from, const Position& to, const Agent_State& s, double speed) {
+        if (from.i == 1 or to.i == -1) return MAXINT;
+        return corrected_dist(PathMagic::id(from), PathMagic::id(to), s, speed);
     }
+
+    static inline int corrected_dist(int from, int to, const Agent_State& s, double speed) {
+        if (from == to) return 0;
+
+        double distance = PathMagic::distances[from][to];
+
+        if (Direction::index(s.dir) == PathMagic::direction_from_to[from][to]) distance -= s.step;
+        else distance += s.step;
+
+        return (int) ceil(distance/speed);
+    }
+
+    static inline double corrected_dist_exact(int from, int to, const Agent_State& s) {
+        if (from == to) return 0;
+
+        double distance = PathMagic::distances[from][to];
+
+        if (Direction::index(s.dir) == PathMagic::direction_from_to[from][to]) distance -= s.step;
+        else distance += s.step;
+
+        return distance;
+    }
+
 
     static void compute_valid_dirs_intersections(const State &s) {
         valid_dirs = vector<vector<char>>(s.valid_positions.size());
+        intersections.clear();
+
         for (uint i = 0; i < s.valid_positions.size(); ++i) {
             for (int j = 0; j < Direction::NUMBER; ++j)
                 if (s.valid_to_move(s.valid_positions[i].move_destination(Direction::LIST[j])))
@@ -145,7 +172,7 @@ struct PathMagic {
         return valid_dirs[index_from_pos[pos.i][pos.j]];
     }
 
-    static void compute_paths(const State& s) { // TODO: Implement other things
+    static void compute_paths(const State& s) {
         s.max_dist = 1;
         int n = s.valid_positions.size();
         direction_from_to = vector<vector<char>>(n, vector<char>(n));
@@ -188,21 +215,6 @@ struct PathMagic {
         }   }   }   }
     }
 
-    static void compute_intersections_graph(const State &s) {
-        intersections_graph = vector<vector<int>>(s.valid_positions.size());
-
-        for (uint i = 0; i < intersections.size(); ++i) {
-            for (uint j = i + 1; j < intersections.size(); ++j) {
-                int interi = intersections[i];
-                int interj = intersections[j];
-                if (n_intersections[interi][interj] == 1) {
-                    intersections_graph[interi].push_back(interj);
-                    intersections_graph[interj].push_back(interi);
-                }
-            }
-        }
-    }
-
     // Recorda comprovar si l'origen es interseccio alhora de calcular les neighboring intersections (cal comptar l'origen com a interseccio tambe
     // Recorda comprovar si el desti es interseccio alhora de calcular el nombre d'interseccions a creuar per arribar a un ghost (s'ha de restar)
 
@@ -210,7 +222,6 @@ struct PathMagic {
         enclosing_intersections = vector<vector<int>>(s.valid_positions.size());
 
         for (uint i = 0; i < s.valid_positions.size(); ++i) {
-            if (is_intersection(s.valid_positions[i])) enclosing_intersections[i].push_back(i);
             for (int intersection : intersections)
                 if (n_intersections[i][intersection] == 1) enclosing_intersections[i].push_back(intersection);
         }
@@ -219,7 +230,6 @@ struct PathMagic {
     static void compute(State& s) {
         compute_valid_dirs_intersections(s);
         compute_paths(s);
-        compute_intersections_graph(s);
         compute_enclosing_intersections(s);
         //debug(s);
     }
@@ -260,16 +270,6 @@ struct PathMagic {
         cout << endl << "Intersections: ";
         for (int x : intersections) cout << x << ' ';
 
-        cout << endl << "Intersections graph:" << endl;
-        for (int i = 0; i < n; ++i) {
-            if (intersections_graph[i].size() > 0) {
-                cout << "Intersection " << i << ": ";
-                for (uint j = 0; j < intersections_graph[i].size(); ++j)
-                    cout << intersections_graph[i][j] << ' ';
-                cout << endl;
-            }
-        }
-
         cout << "Distances:" << endl;
         for (int i = 0; i < n; ++i) {
             cout << "From " << i << ": ";
@@ -291,6 +291,5 @@ vector<vector<int>> PathMagic::enclosing_intersections;
 vector<vector<int>> PathMagic::n_intersections;
 vector<vector<int>> PathMagic::distances;
 vector<int> PathMagic::intersections;
-vector<vector<int>> PathMagic::intersections_graph;
 
 #endif //SRC_PATHFINDING_HH

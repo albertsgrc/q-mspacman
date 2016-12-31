@@ -26,7 +26,6 @@ struct GameResult {
 class Game {
 private:
 
-    Agent* pacman;
     vector<Agent*> ghosts;
 
     float ghost_speed(int ghost_id) {
@@ -83,6 +82,10 @@ private:
     }
 
 public:
+    static const int MAX_GHOSTS = 4;
+
+    Agent* pacman;
+
     GameResult result;
 
     State initialState;
@@ -93,6 +96,10 @@ public:
     bool game_over;
 
     Game(Agent* pacman) : pacman(pacman), loaded_maze(false), game_over(false) {}
+
+    void set_ai(Agent* pacman) {
+        this->pacman = pacman;
+    }
 
     void load_maze() {
         loaded_maze = true;
@@ -108,6 +115,7 @@ public:
         state.maze = Matrix<char>(rows, cols);
         uint valid_index = 0;
         PathMagic::index_from_pos = vector<vector<int>>(rows, vector<int>(cols, -1));
+        State::valid_positions.clear();
 
         layout_file >> std::noskipws;
         for (int i = 0; i < rows; ++i) {
@@ -119,8 +127,13 @@ public:
                 state.n_normal_pills_left += cell == State::PILL;
                 state.n_powerpills_left += cell == State::POWER_PILL;
 
-                if (cell == State::PILL) state.normal_pills.insert(state.valid_positions.size());
-                else if (cell == State::POWER_PILL) state.powerpills.insert(state.valid_positions.size());
+                if (cell == State::POWER_PILL) {
+                    state.powerpills.insert(state.valid_positions.size());
+                    state.pills.insert(state.valid_positions.size());
+                }
+                else if (cell == State::PILL) {
+                    state.pills.insert(state.valid_positions.size());
+                }
 
                 if (cell != State::WALL) {
                     state.valid_positions.push_back(Position(i, j));
@@ -139,6 +152,7 @@ public:
         state.total_powerpills = state.n_powerpills_left;
         state.total_normal_pills = state.n_normal_pills_left;
         state.distribution_valid_pos = uniform_int_distribution<>(0, state.valid_positions.size() - 1);
+        state.n_ghosts = state.ghosts.size();
 
         SeenMatrix::init(rows, cols);
         PathMagic::compute(state);
@@ -208,18 +222,17 @@ public:
                             case State::PILL:
                                 state.maze[next_pos.i][next_pos.j] = State::FREE;
                                 --state.n_normal_pills_left;
-                                state.normal_pills.erase(PathMagic::id(next_pos));
+                                state.pills.erase(PathMagic::id(next_pos));
                                 pacman->notify_eaten_pill();
                                 break;
                             case State::POWER_PILL:
                                 state.maze[next_pos.i][next_pos.j] = State::FREE;
                                 --state.n_powerpills_left;
+                                state.pills.erase(PathMagic::id(next_pos));
                                 state.powerpills.erase(PathMagic::id(next_pos));
                                 pacman->notify_eaten_powerpill();
 
-                                for (Ghost_State& ghost : state.ghosts) {
-                                    ghost.maybe_scared = true;
-                                }
+                                for (Ghost_State& ghost : state.ghosts) ghost.maybe_scared = true;
 
                                 state.n_rounds_powerpill = Arguments::n_rounds_powerpill;
                                 break;
@@ -292,6 +305,10 @@ public:
         this->result.won = not game_over;
         pacman->notify_game_result(this->result.won);
         return this->result;
+    }
+
+    double completion() {
+        return 1 - (state.n_normal_pills_left + state.n_powerpills_left)/double(state.total_pills);
     }
 };
 

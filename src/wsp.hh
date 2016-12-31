@@ -49,12 +49,8 @@ PathResult wsp(const Position& start,
                 int c = cell_cost(s) + 1;
                 if (state.valid_to_move(s) and C[a.pos.i][a.pos.j] + c < C[s.i][s.j]) {
                     C[s.i][s.j] = C[a.pos.i][a.pos.j] + c;
-                    Q.push(CostPathStep(s,
-                                a.initial, C[s.i][s.j]));
-                }
-            }
-        }
-    }
+                    Q.push(CostPathStep(s, a.initial, C[s.i][s.j]));
+    }   }   }   }
 
     return Q.empty() ? PathResult(false) : PathResult(Q.top().initial, 0);
 }

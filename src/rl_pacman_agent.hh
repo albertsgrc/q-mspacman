@@ -12,37 +12,41 @@
 #include "neural_network.hh"
 #include "arguments.hh"
 #include "bfs.hh"
-#include "inputs.hh"
+#include "rl_pacman_agent_inputs.hh"
 
 class RL_Pacman_Agent: public Agent {
 public:
-    static const int N_INPUTS = 15;
 
     double reward;
 
-    double previous_input[N_INPUTS];
+    double previous_input[RL_Pacman_Agent_Inputs::N_INPUTS];
 
     uint n_games;
 
     Neural_Network nn;
 
     RL_Pacman_Agent() : reward(0), n_games(1),
-                        nn(N_INPUTS, Arguments::n_hidden_layers, Arguments::n_hidden_neurons, 1, Arguments::learning_rate)
+                        nn(RL_Pacman_Agent_Inputs::N_INPUTS, Arguments::n_hidden_layers, Arguments::n_hidden_neurons, 1, Arguments::learning_rate)
     {
-        for (int i = 0; i < N_INPUTS; ++i) previous_input[i] = 0.0;
+        for (int i = 0; i < RL_Pacman_Agent_Inputs::N_INPUTS; ++i) previous_input[i] = 0.0;
     }
+
+    inline void before_start(const State& s) override {
+        RL_Pacman_Agent_Inputs::precompute();
+    };
 
     inline Direction take_action(const State& s, uint ghost_id) {
         const Position& pos = s.pacman.pos;
 
-        double input[N_INPUTS];
+        double input[RL_Pacman_Agent_Inputs::N_INPUTS];
 
-        Inputs::compute_undirected(input, s);
+        RL_Pacman_Agent_Inputs::set_input(input);
 
-        // Input number of rounds ?
+        RL_Pacman_Agent_Inputs::compute_undirected(s);
+
         Direction best_dir;
         double max_q = numeric_limits<double>::lowest();
-        double max_input[N_INPUTS];
+        double max_input[RL_Pacman_Agent_Inputs::N_INPUTS];
 
         vector<char>& valid_dirs = PathMagic::dirs(pos);
         vector<Direction> valid_dirs_no_opposite;
@@ -51,12 +55,18 @@ public:
             const Direction& d = Direction::LIST[(int)i];
             if (not d.isOpposite(s.pacman.dir)) valid_dirs_no_opposite.push_back(d);
 
-            Inputs::compute_directed(input, d, s);
+            RL_Pacman_Agent_Inputs::compute_directed(d, s);
+
+            /*if (n_games > Arguments::plays) {
+                cout << "Direction " << Direction::name(i) << ":" << endl;
+                RL_Pacman_Agent_Inputs::debug(input);
+                cout << endl;
+            }*/
 
             double q = nn.recall(input)[0];
 
             if (q > max_q) {
-                memcpy(max_input, input, N_INPUTS*sizeof(double));
+                memcpy(max_input, input, RL_Pacman_Agent_Inputs::N_INPUTS*sizeof(double));
                 max_q = q;
                 best_dir = d;
             }
@@ -64,7 +74,7 @@ public:
 
         double adv = double(n_games)/Arguments::plays;
         Direction take;
-        if (randdouble() >= 0.9 and adv < 0.95) { // epsilon-learning (prob. 0.1) is also really good!
+        if (randdouble() >= adv and adv < 0.95) { // epsilon-learning (prob. 0.1) is also really good!
             if (Arguments::smart_exploration) {
                 if (s.pacman.pos != s.pacman.prev)  {
                     take = valid_dirs_no_opposite.size() > 0 ?
@@ -83,7 +93,7 @@ public:
         double expected[1] = { reward + (s.round > 1 ? Arguments::discount_factor*max_q : 0) };
         nn.train(previous_input, expected);
 
-        memcpy(previous_input, max_input, N_INPUTS*sizeof(double));
+        memcpy(previous_input, max_input, RL_Pacman_Agent_Inputs::N_INPUTS*sizeof(double));
 
         reward = Arguments::reward_step;
 

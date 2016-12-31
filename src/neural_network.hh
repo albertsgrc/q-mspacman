@@ -25,12 +25,16 @@ using namespace std;
 class Neural_Network {
 private:
     void reserve() {
+        n_weights = n_hidden_neurons*(n_inputs + (n_hidden_layers - 1)*n_hidden_neurons + n_outputs);
+        n_bias = n_hidden_neurons*n_hidden_layers + n_outputs;
+
         hidden = (double*) malloc(sizeof(double)*n_hidden_layers*n_hidden_neurons);
         output = (double*) malloc(sizeof(double)*n_outputs);
         weights = (double*) malloc(sizeof(double)*n_weights);
         bias = (double*) malloc(sizeof(double)*n_bias);
         delta_output = (double*) malloc(sizeof(double)*n_outputs);
         delta_hidden = (double*) malloc(sizeof(double)*n_hidden_layers*n_hidden_neurons);
+        reserved = true;
     }
 public:
     bool reserved;
@@ -67,14 +71,13 @@ public:
     }
 
     Neural_Network() : reserved(false) {}
-    Neural_Network(const string& path, double learning_rate) : reserved(true), learning_rate(learning_rate) { load(path); }
+    Neural_Network(const string& path, double learning_rate) : reserved(false), learning_rate(learning_rate) {
+        load(path);
+    }
 
     Neural_Network(uint n_inputs, uint n_hidden_layers, uint n_hidden_neurons, uint n_outputs, double learning_rate)
         : n_inputs(n_inputs), n_hidden_layers(n_hidden_layers),
-          n_hidden_neurons(n_hidden_neurons), n_outputs(n_outputs),
-          n_weights(n_hidden_neurons*(n_inputs + (n_hidden_layers - 1)*n_hidden_neurons + n_outputs)),
-          n_bias(n_hidden_neurons*n_hidden_layers + n_outputs),
-          learning_rate(learning_rate) {
+          n_hidden_neurons(n_hidden_neurons), n_outputs(n_outputs), learning_rate(learning_rate) {
 
         reserve();
 
@@ -234,6 +237,9 @@ public:
     void load(string path) {
         ifstream file;
         file.open(path);
+
+        if (not file.is_open()) error("Invalid file path " + path);
+
         file >> n_inputs >> n_hidden_layers >> n_hidden_neurons >> n_outputs;
 
         if (not reserved) reserve();

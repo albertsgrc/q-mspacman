@@ -34,7 +34,17 @@ public:
     }
 
     static int index(const Direction& d) {
-        return (d.j == 1) + ((d.i != 0) << 1);
+        return (d.i == 1) + ((d.j == 0) << 1) + (d.j == 1);
+    }
+
+    static string name(char index) {
+        switch (index) {
+            case 0: return "LEFT";
+            case 1: return "RIGHT";
+            case 2: return "UP";
+            case 3: return "DOWN";
+            default: assert(false);
+        }
     }
 };
 

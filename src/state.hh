@@ -28,6 +28,10 @@ struct State {
     static int max_dist;
     static int total_powerpills;
     static int total_normal_pills;
+    static int n_ghosts;
+
+    unordered_set<int> pills;
+    unordered_set<int> powerpills;
 
     uniform_int_distribution<> distribution_valid_pos;
 
@@ -40,8 +44,6 @@ struct State {
 
     int n_powerpills_left;
 
-    unordered_set<int> normal_pills;
-    unordered_set<int> powerpills;
 
     vector<Ghost_State> ghosts;
     Agent_State pacman;
@@ -59,7 +61,7 @@ struct State {
         pacman = o.pacman;
         round = o.round;
         n_rounds_powerpill = o.n_rounds_powerpill;
-        normal_pills = o.normal_pills;
+        pills = o.pills;
         powerpills = o.powerpills;
     }
 
@@ -214,6 +216,6 @@ int State::total_pills;
 int State::max_dist;
 int State::total_normal_pills;
 int State::total_powerpills;
+int State::n_ghosts;
 vector<Position> State::valid_positions;
-
 #endif

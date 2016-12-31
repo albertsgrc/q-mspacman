@@ -6,7 +6,7 @@
 using namespace std;
 
 enum Pacman_AI_Agent {
-    PATHFINDING, INPUT, RANDOM, RL
+    PATHFINDING, INPUT, RANDOM, RL, NN
 };
 
 const string LAYOUT_FOLDER = "./layouts/";
@@ -23,20 +23,20 @@ const string DFL_LAYOUT_PATH = LAYOUT_FOLDER + "originalClassic.lay";
 const Pacman_AI_Agent DFL_PACMAN_AI_AGENT = RL;
 
 const float DFL_PACMAN_SPEED = 0.5;
-const float DFL_GHOST_SPEED = 0.85; // Relative to pacman
-const float DFL_GHOST_AFRAID_SPEED_FRACTION = 0.65; // Relative to their current speed
+const float DFL_GHOST_SPEED = 0.8; // Relative to pacman
+const float DFL_GHOST_AFRAID_SPEED_FRACTION = 0.55; // Relative to their current speed
 
 // The duration in rounds of a scatter mode cycle will be divided
 // by this factor at the end of every cycle
 const float DFL_SCATTER_CYCLE_FACTOR = 1.03;
 // The duration in rounds of a chase mode cycle will be multiplied
 // by this factor at the end of every cycle
-const float DFL_CHASE_CYCLE_FACTOR = 1.1;
+const float DFL_CHASE_CYCLE_FACTOR = 1.05;
 // Initial duration of a scatter cycle in rounds.
 
-const int DFL_INITIAL_SCATTER_CYCLE_ROUNDS = 30;
+const int DFL_INITIAL_SCATTER_CYCLE_ROUNDS = 50;
 // Same for chase cycle
-const int DFL_INITIAL_CHASE_CYCLE_ROUNDS = 30;
+const int DFL_INITIAL_CHASE_CYCLE_ROUNDS = 20;
 
 // Standard deviation of the normal distribution used to decide the number
 // of ghost mode cycles when there is a change in the mode
@@ -57,10 +57,10 @@ const size_t DFL_RANDOM_SEED = time(0);
 /** NEURAL NETWORK ARGUMENTS **/
 
 const int DFL_N_HIDDEN_LAYERS = 1;
-const int DFL_N_HIDDEN_NEURONS = 25;
+const int DFL_N_HIDDEN_NEURONS = 200;
 const double DFL_MIN_WEIGHT_INIT = -0.3;
 const double DFL_MAX_WEIGHT_INIT = 0.3;
-const double DFL_LEARNING_RATE = 0.0003;
+const double DFL_LEARNING_RATE = 0.0004;
 
 
 /** Q-LEARNING ARGUMENTS **/
@@ -76,6 +76,23 @@ const double DFL_REWARD_STEP = -10;
 const double DFL_DISCOUNT_FACTOR = 0.95;
 
 const bool DFL_SMART_EXPLORATION = true;
+
+/** Q-LEARNING INPUT ALGORITHMS ARGUMENTS **/
+
+// Pacman would not die unless staying still this number of rounds after reaching an intersection considered safe
+const int DFL_SAFE_DISTANCE_MARGIN = 4;
+const int DFL_MAX_INTERSECTION_DISTANCE = 3;
+const int DFL_CLOSE_POWERPILL_DISTANCE = 10;
+
+/** INFORMATION LOGGING ARGUMENTS **/
+
+const int DFL_LOGGING_STATISTICS_PRECISION = 100;
+const int DFL_LOGGING_UPDATE_RATE = 5;
+
+/** AI TESTING **/
+
+const int DFL_N_GAMES_TEST = 5000;
+
 
 typedef unsigned int uint;
 void error(const string& msg) {
@@ -127,6 +144,13 @@ public:
     static double reward_step;
     static double discount_factor;
     static bool smart_exploration;
+    static int safe_distance_margin;
+    static int max_intersection_distance;
+    static int close_powerpill_distance;
+    static int logging_statistics_precision;
+    static int logging_update_rate;
+    static int n_games_test;
+    static string neural_network_path;
 
     static void init(int argc, char* argv[]);
 
@@ -169,6 +193,13 @@ double Arguments::reward_reverse;
 double Arguments::reward_step;
 double Arguments::discount_factor;
 bool Arguments::smart_exploration;
+int Arguments::safe_distance_margin;
+int Arguments::max_intersection_distance;
+int Arguments::close_powerpill_distance;
+int Arguments::logging_statistics_precision;
+int Arguments::logging_update_rate;
+int Arguments::n_games_test;
+string Arguments::neural_network_path;
 
 void Arguments::init(int argc, char* argv[]) {
     Arguments::layout_path = DFL_LAYOUT_PATH;
@@ -200,6 +231,12 @@ void Arguments::init(int argc, char* argv[]) {
     Arguments::reward_step = DFL_REWARD_STEP;
     Arguments::discount_factor = DFL_DISCOUNT_FACTOR;
     Arguments::smart_exploration = DFL_SMART_EXPLORATION;
+    Arguments::safe_distance_margin = DFL_SAFE_DISTANCE_MARGIN;
+    Arguments::max_intersection_distance = DFL_MAX_INTERSECTION_DISTANCE;
+    Arguments::close_powerpill_distance = DFL_CLOSE_POWERPILL_DISTANCE;
+    Arguments::logging_statistics_precision = DFL_LOGGING_STATISTICS_PRECISION;
+    Arguments::logging_update_rate = DFL_LOGGING_UPDATE_RATE;
+    Arguments::n_games_test = DFL_N_GAMES_TEST;
 
     for (int i = 1; i < argc; ++i) treat_arg(argv[i]);
 }
@@ -222,6 +259,11 @@ void Arguments::assign_argument(const string& key, const string& value) {
         else if (value == "input") Arguments::pacman_ai_agent = INPUT;
         else if (value == "random") Arguments::pacman_ai_agent = RANDOM;
         else if (value == "rl") Arguments::pacman_ai_agent = RL;
+        else if (value[0] == value[1] and value[1] == 'n') {
+            Arguments::pacman_ai_agent = NN;
+            string extension = ".txt";
+            Arguments::neural_network_path = "../data/" + value + extension;
+        }
         else error("Invalid pacman AI agent name '" + value + "'");
     }
     else if (key == "plays") Arguments::plays = stoi(value);
@@ -243,6 +285,12 @@ void Arguments::assign_argument(const string& key, const string& value) {
     else if (key == "reward_step") reward_step = stod(value);
     else if (key == "discount_factor") discount_factor = stod(value);
     else if (key == "smart_exploration") smart_exploration = value != "0" and value != "false";
+    else if (key == "safe_distance_margin") safe_distance_margin = stoi(value);
+    else if (key == "max_intersection_distance") max_intersection_distance = stoi(value);
+    else if (key == "close_powerpill_distance") close_powerpill_distance = stoi(value);
+    else if (key == "logging_statistics_precision") logging_statistics_precision = stoi(value);
+    else if (key == "logging_update_rate") logging_update_rate = stoi(value);
+    else if (key == "n_games_test") n_games_test = stoi(value);
     else error("Invalid argument name '" + key + "'");
 }
 
