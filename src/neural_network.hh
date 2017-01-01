@@ -98,40 +98,6 @@ public:
 
     inline void set_learning_rate(double v) { learning_rate = v; }
 
-    double* recall() {
-        memcpy(hidden, bias, sizeof(double)*n_hidden_neurons*n_hidden_layers);
-        memcpy(output, bias + n_hidden_neurons*n_hidden_layers, sizeof(double)*n_outputs);
-
-        // Input to 1st hidden layer
-        for (uint input_from = 0; input_from < n_inputs; ++input_from) {
-            for (uint hidden_to = 0; hidden_to < n_hidden_neurons; ++hidden_to)
-                hiddenat(0, hidden_to) += input[input_from]*inputweightat(input_from, hidden_to);
-        }
-
-        for (uint neuron = 0; neuron < n_hidden_neurons; ++neuron)
-            hiddenat(0, neuron) = sigmoid(hiddenat(0, neuron));
-
-        // layer - 1 to layer
-        for (uint layer_to = 1; layer_to < n_hidden_layers; ++layer_to) {
-            for (uint neuron_from = 0; neuron_from < n_hidden_neurons; ++neuron_from)
-                for (uint neuron_to = 0; neuron_to < n_hidden_neurons; ++neuron_to)
-                    hiddenat(layer_to, neuron_to) += hiddenat(layer_to - 1, neuron_from)
-                                                     *
-                                                     hiddenweightat(layer_to, neuron_from, neuron_to);
-
-            for (uint neuron = 0; neuron < n_hidden_neurons; ++neuron)
-                hiddenat(layer_to, neuron) = sigmoid(hiddenat(layer_to, neuron));
-        }
-
-        // Last layer to output
-        uint last_layer = n_hidden_layers - 1;
-        for (uint hidden_from = 0; hidden_from < n_hidden_neurons; ++hidden_from)
-            for (uint output_to = 0; output_to < n_outputs; ++output_to)
-                output[output_to] += hiddenat(last_layer, hidden_from)*outputweightat(hidden_from, output_to);
-
-        return output;
-    }
-
     double* recall(double* input_values) {
         input = input_values;
 

@@ -15,6 +15,7 @@ checks = [
     ["No pacman", (layout) -> countChar(layout, 'P') is 0]
     ["Invalid character", (layout) -> (c for c in layout when c isnt '\n').some((c) -> c not in VALID_CHARACTERS)]
     ["More than 4 ghosts", (layout) -> countChar(layout, 'G') > 4]
+    ["No ghosts", (layout) -> countChar(layout, 'G') == 0]
 ]
 
 error = (layoutPath, text) ->

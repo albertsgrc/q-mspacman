@@ -15,13 +15,20 @@ class NN_Pacman_Agent : public Agent {
 public:
 
     Neural_Network nn;
+    double* input;
 
-    NN_Pacman_Agent(string neural_network_path) : nn(neural_network_path, 0.0) {}
+    NN_Pacman_Agent(string neural_network_path) : nn(neural_network_path, 0.0) {
+        ensure(nn.n_inputs == uint(RL_Pacman_Agent_Inputs::n_inputs), "This neural network was trained with different inputs");
+        input = (double*) malloc(RL_Pacman_Agent_Inputs::n_inputs*sizeof(double));
+    }
+
+    ~NN_Pacman_Agent() {
+        free(input);
+    }
 
     inline Direction take_action(const State& s, uint ghost_id) {
         const Position& pos = s.pacman.pos;
 
-        double input[RL_Pacman_Agent_Inputs::N_INPUTS];
         RL_Pacman_Agent_Inputs::set_input(input);
         RL_Pacman_Agent_Inputs::compute_undirected(s);
 
@@ -32,6 +39,12 @@ public:
             const Direction& d = Direction::LIST[(int)i];
 
             RL_Pacman_Agent_Inputs::compute_directed(d, s);
+
+            #if DEBUG
+                cout << "Direction " << Direction::name(i) << ":" << endl;
+                RL_Pacman_Agent_Inputs::debug(input);
+                cout << endl;
+            #endif
 
             double q = nn.recall(input)[0];
 

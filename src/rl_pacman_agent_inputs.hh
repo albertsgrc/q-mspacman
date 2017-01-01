@@ -22,9 +22,9 @@ public:
     static double max_distance_inverse;
     static double n_intersections_inverse;
 
-    static const int N_INPUTS = 14 + Game::MAX_GHOSTS*4;
+    static int n_inputs;
 
-    static uint current_input;
+    static int current_input;
     static double* input;
 
     static vector<vector<double>> safe_paths;
@@ -32,11 +32,12 @@ public:
 
     static void precompute() {
         total_rounds_powerpill_inverse = 1.0/Arguments::n_rounds_powerpill;
-        total_powerpills_inverse = 1.0/State::total_powerpills;
-        total_normal_pills_inverse = 1.0/State::total_normal_pills;
+        total_powerpills_inverse = State::total_powerpills > 0 ? 1.0/State::total_powerpills : 1;
+        total_normal_pills_inverse = State::total_normal_pills > 0 ? 1.0/State::total_normal_pills : 1;
         max_distance_inverse = 1.0/State::max_dist;
         n_ghosts_inverse = 1.0/State::n_ghosts;
-        n_intersections_inverse = 1.0/PathMagic::intersections.size();
+        n_intersections_inverse = PathMagic::intersections.size() > 0 ? 1.0/PathMagic::intersections.size() : 1;
+        n_inputs = State::n_ghosts*6 + Arguments::max_intersection_distance + 13;
     }
 
     static inline void set_input(double* input_p) {
@@ -160,8 +161,10 @@ public:
 
         vector<int> scared_ghosts;
         vector<int> non_scared_ghosts;
+        vector<int> ghosts;
 
         for (int i = 0; i < s.n_ghosts; ++i) {
+            ghosts.push_back(i);
             if (s.ghosts[i].is_alive()) {
                 if (s.is_scared(s.ghosts[i])) scared_ghosts.push_back(i);
                 else non_scared_ghosts.push_back(i);
@@ -170,11 +173,15 @@ public:
 
         sort(scared_ghosts.begin(), scared_ghosts.end(), [&dist_ghosts](int a, int b) { return dist_ghosts[a] < dist_ghosts[b]; });
         sort(non_scared_ghosts.begin(), non_scared_ghosts.end(), [&dist_ghosts](int a, int b) { return dist_ghosts[a] < dist_ghosts[b]; });
+        sort(ghosts.begin(), ghosts.end(), [&dist_ghosts](int a, int b) { return dist_ghosts[a] < dist_ghosts[b]; });
 
-        for (uint i = 0; i < Game::MAX_GHOSTS; ++i) {
+        for (uint i = 0; i < uint(State::n_ghosts); ++i) {
             add_input(i < scared_ghosts.size() ? dist_ghosts[scared_ghosts[i]]*max_distance_inverse : 1);
             add_input(i < non_scared_ghosts.size() ? dist_ghosts[non_scared_ghosts[i]]*max_distance_inverse : 1);
             add_input(i < non_scared_ghosts.size() ? is_approaching_pacman(s.ghosts[non_scared_ghosts[i]], s) : 0);
+
+            add_input(s.ghosts[ghosts[i]].pos.i/double(s.maze.rows()));
+            add_input(s.ghosts[ghosts[i]].pos.j/double(s.maze.cols()));
 
             double in;
             if (i < non_scared_ghosts.size()) {
@@ -220,7 +227,10 @@ public:
         add_input((s.max_dist + PathMagic::corrected_dist_exact(pos_id, closest_intersection, s.pacman)*Arguments::ghost_speed
                    - ghost_dist_intersection)*max_distance_inverse);
 
-        assert(current_input == N_INPUTS);
+        add_input(pos.i/double(s.maze.rows()));
+        add_input(pos.j/double(s.maze.cols()));
+
+        ensure(current_input == n_inputs, "The number of inputs is incorrect");
         current_input = previous_current_input;
     }
 
@@ -236,36 +246,29 @@ public:
         debug_helper("U: Powerpill at distance <= 10", input, i);
         debug_helper("U: Proportion of scared ghosts", input, i);
         debug_helper("Going in that direction", input, i);
-        //debug_helper("Ghosts distance <= 15 approaching pacman", input, i);
-        //debug_helper("Sum of approaching ghosts distances", input, i);
-        //debug_helper("Sum of ghosts distances", input, i);
         debug_helper("Distance closest pill (any)", input, i);
         debug_helper("Distance closest powerpill", input, i);
-        debug_helper("Distance 1 closest scared ghost", input, i);
-        debug_helper("Distance 2 closest scared ghost", input, i);
-        debug_helper("Distance 3 closest scared ghost", input, i);
-        debug_helper("Distance 4 closest scared ghost", input, i);
-        debug_helper("Distance 1 closest ghost", input, i);
-        debug_helper("Distance 2 closest ghost", input, i);
-        debug_helper("Distance 3 closest ghost", input, i);
-        debug_helper("Distance 4 closest ghost", input, i);
-        debug_helper("1 closest ghost approaching pacman", input, i);
-        debug_helper("2 closest ghost approaching pacman", input, i);
-        debug_helper("3 closest ghost approaching pacman", input, i);
-        debug_helper("4 closest ghost approaching pacman", input, i);
-        debug_helper("Intersections to 1 closest ghost", input, i);
-        debug_helper("Intersections to 2 closest ghost", input, i);
-        debug_helper("Intersections to 3 closest ghost", input, i);
-        debug_helper("Intersections to 4 closest ghost", input, i);
+
+        for (int j = 0; j < State::n_ghosts; ++j) {
+            debug_helper("Distance " + to_string(j) + " closest scared ghost", input, i);
+            debug_helper("Distance " + to_string(j) + " closest ghost", input, i);
+            debug_helper(to_string(j) + " closest ghost approaching pacman", input, i);
+            debug_helper("Position i of " + to_string(j) + " closest ghost", input, i);
+            debug_helper("Position j of " + to_string(j) + " closest ghost", input, i);
+            debug_helper("Intersections to " + to_string(j) + " closest ghost", input, i);
+        }
+
         debug_helper("Distance closest intersection", input, i);
-        //debug_helper("Pacman can reach powerpill safely", input, i);
-        debug_helper("Proportion of safe paths 1 int away", input, i);
-        debug_helper("Proportion of safe paths 2 int away", input, i);
-        debug_helper("Proportion of safe paths 3 int away", input, i);
+
+        for (int j = 0; j < Arguments::max_intersection_distance; ++j)
+            debug_helper("Proportion of safe paths " + to_string(j) + " int away", input, i);
+
         debug_helper("Will be trapped", input, i);
         debug_helper("Ghost danger", input, i);
+        debug_helper("Pacman i position", input, i);
+        debug_helper("Pacman j position", input, i);
 
-        assert(i == N_INPUTS);
+        ensure(i == n_inputs, "The number of inputs is incorrect");
     }
 };
 
@@ -276,10 +279,12 @@ double RL_Pacman_Agent_Inputs::n_ghosts_inverse;
 double RL_Pacman_Agent_Inputs::max_distance_inverse;
 double RL_Pacman_Agent_Inputs::n_intersections_inverse;
 
-uint RL_Pacman_Agent_Inputs::current_input;
+int RL_Pacman_Agent_Inputs::current_input;
 double* RL_Pacman_Agent_Inputs::input;
 
 vector<vector<double>> RL_Pacman_Agent_Inputs::safe_paths;
 vector<double> RL_Pacman_Agent_Inputs::total_safe_paths_inverse;
+
+int RL_Pacman_Agent_Inputs::n_inputs;
 
 #endif //SRC_INPUTS_HH

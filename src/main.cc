@@ -2,7 +2,8 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
-#include <uuid/uuid.h>
+#include <time.h>
+#include <sstream>
 
 #include "arguments.hh"
 #include "game.hh"
@@ -20,15 +21,11 @@ struct Statistics {
     Statistics(uint won, double completion) : won(won), completion(completion) {}
 };
 
-string uuid() {
-    char uuidc[36];
-    uuid_t out;
-    uuid_generate(out);
-    uuid_unparse(out, uuidc);
-    return string(uuidc, 36);
+string id() {
+    stringstream ss;
+    ss << time(0) << rand()%100;
+    return ss.str();
 }
-
-
 
 int main(int argc, char* argv[]) {
     cout.setf(ios::fixed);
@@ -38,6 +35,10 @@ int main(int argc, char* argv[]) {
     Arguments::postprocess();
 
     srand(Arguments::random_seed);
+
+    Game game;
+
+    game.load_maze();
 
     Agent* pacman_ai;
 
@@ -50,11 +51,7 @@ int main(int argc, char* argv[]) {
         default: ensure(false, "Invalid pacman AI Agent enum value");
     }
 
-    Game game(pacman_ai);
-
-    game.load_maze();
-
-    pacman_ai->before_start(game.state);
+    game.set_ai(pacman_ai);
 
     uint total_won_always = 0;
     uint total_won = 0;
@@ -93,17 +90,18 @@ int main(int argc, char* argv[]) {
         cout << endl;
 
         RL_Pacman_Agent* agent = ((RL_Pacman_Agent*)(pacman_ai));
-        string nn_path = "../data/nn" + uuid() + ".txt";
+        string nn_path = "../data/nn" + id() + ".txt";
         agent->nn.write_file(nn_path);
 
-        pacman_ai = new NN_Pacman_Agent(nn_path);
-
-        Game game_test(pacman_ai);
+        Game game_test;
 
         total_completion = 0.0;
         total_won = 0;
 
         game_test.load_maze();
+
+        pacman_ai = new NN_Pacman_Agent(nn_path);
+        game_test.set_ai(pacman_ai);
 
         for (int i = 0; i < Arguments::n_games_test; ++i) {
             game_test.play();

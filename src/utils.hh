@@ -145,13 +145,13 @@ bool between(T x, T l, T r) {
 #endif
 
 #if DEBUG
-#define __log(...) {\
+#define _debug(...) {\
     char str[200];\
     sprintf(str, __VA_ARGS__);\
     std::cout << "Debug[" << __FILE__ << "][" << __FUNCTION__ << "][Line " << __LINE__ << "] " << str << std::endl;\
 }
 #else
-#define __log(...)
+#define _debug(...)
 #endif
 
 #ifndef DEV

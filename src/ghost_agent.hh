@@ -34,7 +34,7 @@ public:
                 }
 
                 //ensure(pr.found, "Path not found!");
-                if (d == Direction::STAY) __log("No movement for ghost #%d!", ghost_id);
+                if (d == Direction::STAY) _debug("No movement for ghost #%d!", ghost_id);
                 return d;
             }
         }

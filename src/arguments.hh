@@ -34,7 +34,7 @@ const float DFL_SCATTER_CYCLE_FACTOR = 1.03;
 const float DFL_CHASE_CYCLE_FACTOR = 1.05;
 // Initial duration of a scatter cycle in rounds.
 
-const int DFL_INITIAL_SCATTER_CYCLE_ROUNDS = 50;
+const int DFL_INITIAL_SCATTER_CYCLE_ROUNDS = 55;
 // Same for chase cycle
 const int DFL_INITIAL_CHASE_CYCLE_ROUNDS = 20;
 
@@ -43,7 +43,7 @@ const int DFL_INITIAL_CHASE_CYCLE_ROUNDS = 20;
 const float DFL_CYCLE_ROUNDS_STDEV = 4;
 
 const int DFL_N_ROUNDS_POWERPILL = 35;
-const int DFL_N_ROUNDS_GHOST_REVIVE = 15;
+const int DFL_N_ROUNDS_GHOST_REVIVE = 20;
 
 // For a value of X, ghost #0 will start moving at round 1, ghost #1 will start
 // at round X, ghost #2 will start at round 2*X, ghost #3 will start at round 3*X,
@@ -57,7 +57,7 @@ const size_t DFL_RANDOM_SEED = time(0);
 /** NEURAL NETWORK ARGUMENTS **/
 
 const int DFL_N_HIDDEN_LAYERS = 1;
-const int DFL_N_HIDDEN_NEURONS = 200;
+const int DFL_N_HIDDEN_NEURONS = 100;
 const double DFL_MIN_WEIGHT_INIT = -0.3;
 const double DFL_MAX_WEIGHT_INIT = 0.3;
 const double DFL_LEARNING_RATE = 0.0004;
@@ -66,7 +66,7 @@ const double DFL_LEARNING_RATE = 0.0004;
 /** Q-LEARNING ARGUMENTS **/
 
 const double DFL_REWARD_PILL = 12;
-const double DFL_REWARD_POWERPILL = 3;
+const double DFL_REWARD_POWERPILL = 6;
 const double DFL_REWARD_KILL_GHOST = 20;
 const double DFL_REWARD_WIN = 50;
 const double DFL_REWARD_LOSE = -350;

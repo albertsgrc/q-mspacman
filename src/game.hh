@@ -15,6 +15,7 @@
 #include "ghost_agent.hh"
 #include "state.hh"
 #include "pathfinding.hh"
+#include "rl_pacman_agent_inputs.hh"
 
 struct GameResult {
     GameResult() {}
@@ -70,7 +71,7 @@ private:
                 }
 
                 ghost.n_rounds_left_behaviour = max(1, (int) distribution(Arguments::random_generator));
-                __log("Ghost at position [%d,%d] changes behaviour to %s, %d rounds",
+                _debug("Ghost at position [%d,%d] changes behaviour to %s, %d rounds",
                       ghost.pos.i, ghost.pos.j, ghost.behaviour == Ghost_Behaviour::SCATTER ? "scatter" : "chase",
                       (int) (Arguments::pacman_speed*ghost.n_rounds_left_behaviour));
             }
@@ -82,8 +83,6 @@ private:
     }
 
 public:
-    static const int MAX_GHOSTS = 4;
-
     Agent* pacman;
 
     GameResult result;
@@ -95,7 +94,7 @@ public:
 
     bool game_over;
 
-    Game(Agent* pacman) : pacman(pacman), loaded_maze(false), game_over(false) {}
+    Game() : pacman(NULL), loaded_maze(false), game_over(false) {}
 
     void set_ai(Agent* pacman) {
         this->pacman = pacman;
@@ -156,6 +155,7 @@ public:
 
         SeenMatrix::init(rows, cols);
         PathMagic::compute(state);
+        RL_Pacman_Agent_Inputs::precompute();
 
         initialState = state;
     }
@@ -173,6 +173,7 @@ public:
 
     GameResult& play() {
         ensure(loaded_maze, "Try to play without a loaded maze");
+        ensure(pacman != NULL, "Try to play without an agent");
 
         if (Arguments::plays == 1) cout << state << endl;
 
@@ -207,7 +208,7 @@ public:
 
 
                     if (cell_content == State::WALL) {
-                        __log("Pacman crashes with wall");
+                        _debug("Pacman crashes with wall");
                     }
                     else {
                         state.pacman.pos.move(pacman_direction);
@@ -264,7 +265,7 @@ public:
                             char cell_content = state.maze[next_pos.i][next_pos.j];
 
                             if (cell_content == State::WALL) {
-                                __log("Ghost #%d at [%d,%d] crashes with wall", i, ghost.pos.i, ghost.pos.j);
+                                _debug("Ghost #%d at [%d,%d] crashes with wall", i, ghost.pos.i, ghost.pos.j);
                             }
                             else {
                                 ghost.pos.move(ghost_direction);
