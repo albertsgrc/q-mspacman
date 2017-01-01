@@ -19,9 +19,9 @@ public:
 
     double reward;
 
-    double* previous_input;
-    double* input;
-    double* max_input;
+    vector<double> previous_input;
+    vector<double> input;
+    vector<double> max_input;
 
     uint n_games;
 
@@ -30,16 +30,9 @@ public:
     RL_Pacman_Agent() : reward(0), n_games(1),
                         nn(RL_Pacman_Agent_Inputs::n_inputs, Arguments::n_hidden_layers, Arguments::n_hidden_neurons, 1, Arguments::learning_rate)
     {
-        previous_input = (double*) malloc(RL_Pacman_Agent_Inputs::n_inputs*sizeof(double));
-        max_input = (double*) malloc(RL_Pacman_Agent_Inputs::n_inputs*sizeof(double));
-        input = (double*) malloc(RL_Pacman_Agent_Inputs::n_inputs*sizeof(double));
-        for (int i = 0; i < RL_Pacman_Agent_Inputs::n_inputs; ++i) previous_input[i] = 0.0;
-    }
-
-    ~RL_Pacman_Agent() {
-        free(previous_input);
-        free(input);
-        free(max_input);
+        previous_input = vector<double>(RL_Pacman_Agent_Inputs::n_inputs, 0.0);
+        max_input = vector<double>(RL_Pacman_Agent_Inputs::n_inputs);
+        input = vector<double>(RL_Pacman_Agent_Inputs::n_inputs);
     }
 
     inline Direction take_action(const State& s, uint ghost_id) {
@@ -70,7 +63,7 @@ public:
             double q = nn.recall(input)[0];
 
             if (q > max_q) {
-                memcpy(max_input, input, RL_Pacman_Agent_Inputs::n_inputs*sizeof(double));
+                max_input = input;
                 max_q = q;
                 best_dir = d;
             }
@@ -94,10 +87,11 @@ public:
         // If the game ended previously there's no sense of future reward for the last move of the game
         // Note that the first train of all games is a bit sketchy (all inputs 0, reward 0) but doesn't matter
         // in the long term
-        double expected[1] = { reward + (s.round > 1 ? Arguments::discount_factor*max_q : 0) };
+        vector<double> expected(1);
+        expected[0] = reward + (s.round > 1 ? Arguments::discount_factor*max_q : 0);
         nn.train(previous_input, expected);
 
-        swap(previous_input, max_input);
+        previous_input = max_input;
 
         reward = Arguments::reward_step;
 

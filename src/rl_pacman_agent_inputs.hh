@@ -25,7 +25,7 @@ public:
     static int n_inputs;
 
     static int current_input;
-    static double* input;
+    static vector<double> input;
 
     static vector<vector<double>> safe_paths;
     static vector<double> total_safe_paths_inverse;
@@ -40,7 +40,7 @@ public:
         n_inputs = State::n_ghosts*6 + Arguments::max_intersection_distance + 13;
     }
 
-    static inline void set_input(double* input_p) {
+    static inline void set_input(vector<double> input_p) {
         current_input = 0;
         input = input_p;
     }
@@ -280,7 +280,7 @@ double RL_Pacman_Agent_Inputs::max_distance_inverse;
 double RL_Pacman_Agent_Inputs::n_intersections_inverse;
 
 int RL_Pacman_Agent_Inputs::current_input;
-double* RL_Pacman_Agent_Inputs::input;
+vector<double> RL_Pacman_Agent_Inputs::input;
 
 vector<vector<double>> RL_Pacman_Agent_Inputs::safe_paths;
 vector<double> RL_Pacman_Agent_Inputs::total_safe_paths_inverse;

@@ -9,7 +9,7 @@ public:
 
     static Direction STAY, LEFT, RIGHT, UP, DOWN;
     const static int NUMBER = 4;
-    static Direction LIST[NUMBER];
+    static vector<Direction> LIST;
 
     Direction() {}
 
@@ -63,7 +63,6 @@ Direction Direction::RIGHT = Direction(0, +1);
 Direction Direction::UP = Direction(-1, 0);
 Direction Direction::DOWN = Direction(+1, 0);
 
-Direction Direction::LIST[4] =
-    { Direction::LEFT, Direction::RIGHT, Direction::UP, Direction::DOWN };
+vector<Direction> Direction::LIST;
 
 #endif

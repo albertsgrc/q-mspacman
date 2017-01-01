@@ -28,6 +28,12 @@ string id() {
 }
 
 int main(int argc, char* argv[]) {
+    Direction::LIST = vector<Direction>(4);
+    Direction::LIST[0] = Direction::LEFT;
+    Direction::LIST[1] = Direction::RIGHT;
+    Direction::LIST[2] = Direction::UP;
+    Direction::LIST[3] = Direction::DOWN;
+
     cout.setf(ios::fixed);
     cout.precision(2);
 

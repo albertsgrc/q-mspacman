@@ -15,15 +15,11 @@ class NN_Pacman_Agent : public Agent {
 public:
 
     Neural_Network nn;
-    double* input;
+    vector<double> input;
 
     NN_Pacman_Agent(string neural_network_path) : nn(neural_network_path, 0.0) {
         ensure(nn.n_inputs == uint(RL_Pacman_Agent_Inputs::n_inputs), "This neural network was trained with different inputs");
-        input = (double*) malloc(RL_Pacman_Agent_Inputs::n_inputs*sizeof(double));
-    }
-
-    ~NN_Pacman_Agent() {
-        free(input);
+        input = vector<double>(RL_Pacman_Agent_Inputs::n_inputs);
     }
 
     inline Direction take_action(const State& s, uint ghost_id) {
