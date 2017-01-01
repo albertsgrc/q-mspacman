@@ -25,7 +25,6 @@ public:
     static int n_inputs;
 
     static int current_input;
-    static vector<double> input;
 
     static vector<vector<double>> safe_paths;
     static vector<double> total_safe_paths_inverse;
@@ -40,12 +39,11 @@ public:
         n_inputs = State::n_ghosts*6 + Arguments::max_intersection_distance + 13;
     }
 
-    static inline void set_input(vector<double> input_p) {
+    static inline void set_input() {
         current_input = 0;
-        input = input_p;
     }
 
-    static inline void add_input(double v) {
+    static inline void add_input(double v, vector<double>& input) {
         input[current_input++] = v;
     }
 
@@ -97,23 +95,23 @@ public:
         return g.is_alive() and PathMagic::from_to(g.pos, s.pacman.pos) == g.dir;
     }
 
-    static inline void compute_undirected(const State& s) {
+    static inline void compute_undirected(const State& s, vector<double>& input) {
         current_input = 0;
         int pacman_pos_id = PathMagic::id(s.pacman.pos);
         Position closest_pill, closest_powerpill;
         int dist_pill, dist_powerpill;
         closest_pills(s, s.pacman.pos, closest_pill, closest_powerpill, dist_pill, dist_powerpill);
 
-        add_input((s.total_powerpills - (s.n_powerpills_left))*total_powerpills_inverse);
-        add_input((s.total_normal_pills - (s.n_normal_pills_left))*total_normal_pills_inverse);
-        add_input(s.n_rounds_powerpill*total_rounds_powerpill_inverse);
-        add_input(dist_powerpill <= Arguments::close_powerpill_distance);
+        add_input((s.total_powerpills - (s.n_powerpills_left))*total_powerpills_inverse, input);
+        add_input((s.total_normal_pills - (s.n_normal_pills_left))*total_normal_pills_inverse, input);
+        add_input(s.n_rounds_powerpill*total_rounds_powerpill_inverse, input);
+        add_input(dist_powerpill <= Arguments::close_powerpill_distance, input);
 
         int n_scared = 0;
         if (s.n_rounds_powerpill > 0)
             for (const Ghost_State& g : s.ghosts) n_scared += g.maybe_scared;
 
-        add_input(n_scared*n_ghosts_inverse);
+        add_input(n_scared*n_ghosts_inverse, input);
 
         queue<IntersectionPathStep> Q;
         for (int intersection : PathMagic::enclosing_intersections[pacman_pos_id])
@@ -140,7 +138,7 @@ public:
             if (x > 0.0) x = 1.0/x;
     }
 
-    static inline void compute_directed(const Direction& d, const State& s) {
+    static inline void compute_directed(const Direction& d, const State& s, vector<double>& input) {
         uint previous_current_input = current_input;
 
         const Position& pos = s.pacman.pos.move_destination(d);
@@ -155,9 +153,9 @@ public:
         int dist_pill, dist_powerpill;
         closest_pills(s, pos, closest_pill, closest_powerpill, dist_pill, dist_powerpill);
 
-        add_input(s.pacman.dir == d);
-        add_input(dist_pill*max_distance_inverse);
-        add_input(dist_powerpill*max_distance_inverse);
+        add_input(s.pacman.dir == d, input);
+        add_input(dist_pill*max_distance_inverse, input);
+        add_input(dist_powerpill*max_distance_inverse, input);
 
         vector<int> scared_ghosts;
         vector<int> non_scared_ghosts;
@@ -176,12 +174,12 @@ public:
         sort(ghosts.begin(), ghosts.end(), [&dist_ghosts](int a, int b) { return dist_ghosts[a] < dist_ghosts[b]; });
 
         for (uint i = 0; i < uint(State::n_ghosts); ++i) {
-            add_input(i < scared_ghosts.size() ? dist_ghosts[scared_ghosts[i]]*max_distance_inverse : 1);
-            add_input(i < non_scared_ghosts.size() ? dist_ghosts[non_scared_ghosts[i]]*max_distance_inverse : 1);
-            add_input(i < non_scared_ghosts.size() ? is_approaching_pacman(s.ghosts[non_scared_ghosts[i]], s) : 0);
+            add_input(i < scared_ghosts.size() ? dist_ghosts[scared_ghosts[i]]*max_distance_inverse : 1, input);
+            add_input(i < non_scared_ghosts.size() ? dist_ghosts[non_scared_ghosts[i]]*max_distance_inverse : 1, input);
+            add_input(i < non_scared_ghosts.size() ? is_approaching_pacman(s.ghosts[non_scared_ghosts[i]], s) : 0, input);
 
-            add_input(s.ghosts[ghosts[i]].pos.i/double(s.maze.rows()));
-            add_input(s.ghosts[ghosts[i]].pos.j/double(s.maze.cols()));
+            add_input(s.ghosts[ghosts[i]].pos.i/double(s.maze.rows()), input);
+            add_input(s.ghosts[ghosts[i]].pos.j/double(s.maze.cols()), input);
 
             double in;
             if (i < non_scared_ghosts.size()) {
@@ -190,7 +188,7 @@ public:
             }
             else in = 1;
 
-            add_input(in);
+            add_input(in, input);
         }
 
         int min_d = s.max_dist;
@@ -208,14 +206,14 @@ public:
             }
         }
 
-        add_input(min_d*max_distance_inverse);
+        add_input(min_d*max_distance_inverse, input);
         //add_input(closest_powerpill.i != -1 ? can_pacman_reach_safely(s, pos, closest_powerpill) : 0);
 
         int dir_index = Direction::index(d);
         for (int i = 0; i < Arguments::max_intersection_distance; ++i)
-            add_input(safe_paths[dir_index][i]*total_safe_paths_inverse[i]);
+            add_input(safe_paths[dir_index][i]*total_safe_paths_inverse[i], input);
 
-        add_input(safe_paths[dir_index][0] == 0);
+        add_input(safe_paths[dir_index][0] == 0, input);
 
         double ghost_dist_intersection;
         if (non_scared_ghosts.size() > 0) {
@@ -225,19 +223,19 @@ public:
         else ghost_dist_intersection = s.max_dist;
 
         add_input((s.max_dist + PathMagic::corrected_dist_exact(pos_id, closest_intersection, s.pacman)*Arguments::ghost_speed
-                   - ghost_dist_intersection)*max_distance_inverse);
+                   - ghost_dist_intersection)*max_distance_inverse, input);
 
-        add_input(pos.i/double(s.maze.rows()));
-        add_input(pos.j/double(s.maze.cols()));
+        add_input(pos.i/double(s.maze.rows()), input);
+        add_input(pos.j/double(s.maze.cols()), input);
 
         ensure(current_input == n_inputs, "The number of inputs is incorrect");
         current_input = previous_current_input;
     }
 
-    static void debug_helper(string s, double* input, int& index) {
+    static void debug_helper(string s, const vector<double>& input, int& index) {
         cout << s << ' ' << input[index++] << endl;
     }
-    static void debug(double* input) {
+    static void debug(const vector<double>& input) {
         int i = 0;
 
         debug_helper("U: Powerpill progress", input, i);
@@ -280,7 +278,6 @@ double RL_Pacman_Agent_Inputs::max_distance_inverse;
 double RL_Pacman_Agent_Inputs::n_intersections_inverse;
 
 int RL_Pacman_Agent_Inputs::current_input;
-vector<double> RL_Pacman_Agent_Inputs::input;
 
 vector<vector<double>> RL_Pacman_Agent_Inputs::safe_paths;
 vector<double> RL_Pacman_Agent_Inputs::total_safe_paths_inverse;

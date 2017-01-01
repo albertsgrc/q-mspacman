@@ -25,8 +25,8 @@ public:
     inline Direction take_action(const State& s, uint ghost_id) {
         const Position& pos = s.pacman.pos;
 
-        RL_Pacman_Agent_Inputs::set_input(input);
-        RL_Pacman_Agent_Inputs::compute_undirected(s);
+        RL_Pacman_Agent_Inputs::set_input();
+        RL_Pacman_Agent_Inputs::compute_undirected(s, input);
 
         double max_q = numeric_limits<double>::lowest();
         Direction best_dir;
@@ -34,7 +34,7 @@ public:
         for (char i : PathMagic::dirs(pos)) {
             const Direction& d = Direction::LIST[(int)i];
 
-            RL_Pacman_Agent_Inputs::compute_directed(d, s);
+            RL_Pacman_Agent_Inputs::compute_directed(d, s, input);
 
             #if DEBUG
                 cout << "Direction " << Direction::name(i) << ":" << endl;

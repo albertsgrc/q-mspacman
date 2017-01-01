@@ -38,9 +38,9 @@ public:
     inline Direction take_action(const State& s, uint ghost_id) {
         const Position& pos = s.pacman.pos;
 
-        RL_Pacman_Agent_Inputs::set_input(input);
+        RL_Pacman_Agent_Inputs::set_input();
 
-        RL_Pacman_Agent_Inputs::compute_undirected(s);
+        RL_Pacman_Agent_Inputs::compute_undirected(s, input);
 
         Direction best_dir;
         double max_q = numeric_limits<double>::lowest();
@@ -52,7 +52,7 @@ public:
             const Direction& d = Direction::LIST[(int)i];
             if (not d.isOpposite(s.pacman.dir)) valid_dirs_no_opposite.push_back(d);
 
-            RL_Pacman_Agent_Inputs::compute_directed(d, s);
+            RL_Pacman_Agent_Inputs::compute_directed(d, s, input);
 
             #if DEBUG
                 cout << "Direction " << Direction::name(i) << ":" << endl;

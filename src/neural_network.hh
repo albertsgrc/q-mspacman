@@ -93,7 +93,7 @@ public:
             hidden[i] = bias[i];
 
         for (int i = 0; i < n_outputs; ++i)
-            output[i + n_hidden_neurons*n_hidden_layers] = bias[i + n_hidden_neurons*n_hidden_layers];
+            output[i] = bias[i + n_hidden_neurons*n_hidden_layers];
 
         // Input to 1st hidden layer
         for (uint input_from = 0; input_from < n_inputs; ++input_from) {

@@ -164,11 +164,6 @@ public:
         ensure(loaded_maze, "Try to reset without a loaded maze");
         state = initialState;
         game_over = false;
-
-        for (uint i = 0; i < ghosts.size(); ++i) {
-            delete (Ghost_Agent*) ghosts[i];
-            ghosts[i] = (Agent*) new Ghost_Agent();
-        }
     }
 
     GameResult& play() {
