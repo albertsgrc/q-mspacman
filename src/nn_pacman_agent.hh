@@ -42,7 +42,7 @@ public:
                 cout << endl;
             #endif
 
-            double q = nn.recall(input)[0];
+            double q = nn.recall(&input[0])[0];
 
             if (q > max_q) {
                 best_dir = d;

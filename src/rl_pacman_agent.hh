@@ -60,7 +60,7 @@ public:
                 cout << endl;
             #endif
 
-            double q = nn.recall(input)[0];
+            double q = nn.recall(&input[0])[0];
 
             if (q > max_q) {
                 max_input = input;
@@ -87,11 +87,11 @@ public:
         // If the game ended previously there's no sense of future reward for the last move of the game
         // Note that the first train of all games is a bit sketchy (all inputs 0, reward 0) but doesn't matter
         // in the long term
-        vector<double> expected(1);
-        expected[0] = reward + (s.round > 1 ? Arguments::discount_factor*max_q : 0);
-        nn.train(previous_input, expected);
 
-        previous_input = max_input;
+        double expected[1] = { reward + (s.round > 1 ? Arguments::discount_factor*max_q : 0) };
+        nn.train(&previous_input[0], expected);
+
+        previous_input.swap(max_input);
 
         reward = Arguments::reward_step;
 

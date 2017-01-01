@@ -28,26 +28,26 @@ private:
         n_weights = n_hidden_neurons*(n_inputs + (n_hidden_layers - 1)*n_hidden_neurons + n_outputs);
         n_bias = n_hidden_neurons*n_hidden_layers + n_outputs;
 
-        hidden = vector<double>(n_hidden_layers*n_hidden_neurons);
-        output = vector<double>(n_outputs);
-        weights = vector<double>(n_weights);
-        bias = vector<double>(n_bias);
-        delta_output = vector<double>(n_outputs);
-        delta_hidden = vector<double>(n_hidden_layers*n_hidden_neurons);
+        hidden = (double*) malloc(sizeof(double)*n_hidden_layers*n_hidden_neurons);
+        output = (double*) malloc(sizeof(double)*n_outputs);
+        weights = (double*) malloc(sizeof(double)*n_weights);
+        bias = (double*) malloc(sizeof(double)*n_bias);
+        delta_output = (double*) malloc(sizeof(double)*n_outputs);
+        delta_hidden = (double*) malloc(sizeof(double)*n_hidden_layers*n_hidden_neurons);
         reserved = true;
     }
 public:
     bool reserved;
 
-    vector<double> input;
-    vector<double> hidden; // Matrix
-    vector<double> output;
+    double* input;
+    double* hidden; // Matrix
+    double* output;
 
-    vector<double> weights;
-    vector<double> bias;
+    double* weights;
+    double* bias;
 
-    vector<double> delta_output;
-    vector<double> delta_hidden;
+    double* delta_output;
+    double* delta_hidden;
 
     uint n_inputs;
     uint n_hidden_layers;
@@ -58,14 +58,26 @@ public:
 
     double learning_rate;
 
+    ~Neural_Network() {
+        if (reserved) {
+            free(input);
+            free(hidden);
+            free(output);
+            free(weights);
+            free(bias);
+            free(delta_output);
+            free(delta_hidden);
+        }
+    }
+
     Neural_Network() : reserved(false) {}
     Neural_Network(const string& path, double learning_rate) : reserved(false), learning_rate(learning_rate) {
         load(path);
     }
 
     Neural_Network(uint n_inputs, uint n_hidden_layers, uint n_hidden_neurons, uint n_outputs, double learning_rate)
-        : n_inputs(n_inputs), n_hidden_layers(n_hidden_layers),
-          n_hidden_neurons(n_hidden_neurons), n_outputs(n_outputs), learning_rate(learning_rate) {
+            : n_inputs(n_inputs), n_hidden_layers(n_hidden_layers),
+              n_hidden_neurons(n_hidden_neurons), n_outputs(n_outputs), learning_rate(learning_rate) {
 
         reserve();
 
@@ -86,14 +98,9 @@ public:
 
     inline void set_learning_rate(double v) { learning_rate = v; }
 
-    vector<double> recall(const vector<double>& input_values) {
-        input = input_values;
-
-        for (int i = 0; i < n_hidden_neurons*n_hidden_layers; ++i)
-            hidden[i] = bias[i];
-
-        for (int i = 0; i < n_outputs; ++i)
-            output[i] = bias[i + n_hidden_neurons*n_hidden_layers];
+    double* recall() {
+        memcpy(hidden, bias, sizeof(double)*n_hidden_neurons*n_hidden_layers);
+        memcpy(output, bias + n_hidden_neurons*n_hidden_layers, sizeof(double)*n_outputs);
 
         // Input to 1st hidden layer
         for (uint input_from = 0; input_from < n_inputs; ++input_from) {
@@ -125,7 +132,43 @@ public:
         return output;
     }
 
-    double backpropagate(const vector<double>& given, const vector<double>& expected) {
+    double* recall(double* input_values) {
+        input = input_values;
+
+        memcpy(hidden, bias, sizeof(double)*n_hidden_neurons*n_hidden_layers);
+        memcpy(output, bias + n_hidden_neurons*n_hidden_layers, sizeof(double)*n_outputs);
+
+        // Input to 1st hidden layer
+        for (uint input_from = 0; input_from < n_inputs; ++input_from) {
+            for (uint hidden_to = 0; hidden_to < n_hidden_neurons; ++hidden_to)
+                hiddenat(0, hidden_to) += input[input_from]*inputweightat(input_from, hidden_to);
+        }
+
+        for (uint neuron = 0; neuron < n_hidden_neurons; ++neuron)
+            hiddenat(0, neuron) = sigmoid(hiddenat(0, neuron));
+
+        // layer - 1 to layer
+        for (uint layer_to = 1; layer_to < n_hidden_layers; ++layer_to) {
+            for (uint neuron_from = 0; neuron_from < n_hidden_neurons; ++neuron_from)
+                for (uint neuron_to = 0; neuron_to < n_hidden_neurons; ++neuron_to)
+                    hiddenat(layer_to, neuron_to) += hiddenat(layer_to - 1, neuron_from)
+                                                     *
+                                                     hiddenweightat(layer_to, neuron_from, neuron_to);
+
+            for (uint neuron = 0; neuron < n_hidden_neurons; ++neuron)
+                hiddenat(layer_to, neuron) = sigmoid(hiddenat(layer_to, neuron));
+        }
+
+        // Last layer to output
+        uint last_layer = n_hidden_layers - 1;
+        for (uint hidden_from = 0; hidden_from < n_hidden_neurons; ++hidden_from)
+            for (uint output_to = 0; output_to < n_outputs; ++output_to)
+                output[output_to] += hiddenat(last_layer, hidden_from)*outputweightat(hidden_from, output_to);
+
+        return output;
+    }
+
+    double backpropagate(double* given, double* expected) {
         double mse = 0;
 
         // Delta for outputs + weight update for outputs
@@ -156,7 +199,7 @@ public:
             if (n_hidden_layers > 1)
                 for (uint neuron_hidden_previous = 0; neuron_hidden_previous < n_hidden_neurons; ++neuron_hidden_previous)
                     hiddenweightat(last_hidden_layer, neuron_hidden_previous, hidden_to) +=
-                        learning_rate*delta*hiddenat(last_hidden_layer - 1, neuron_hidden_previous);
+                            learning_rate*delta*hiddenat(last_hidden_layer - 1, neuron_hidden_previous);
         }
 
         // Delta for layer layer_to+1 to layer_to + weight update for layer_to
@@ -176,7 +219,7 @@ public:
                 if (layer_to > 0)
                     for (uint neuron_previous = 0; neuron_previous < n_hidden_neurons; ++neuron_previous)
                         hiddenweightat(layer_to, neuron_previous, neuron_to) +=
-                            learning_rate*delta*hiddenat(layer_to - 1, neuron_previous);
+                                learning_rate*delta*hiddenat(layer_to - 1, neuron_previous);
             }
         }
 
@@ -187,7 +230,7 @@ public:
         return mse/n_outputs;
     }
 
-    double train(const vector<double>& input_values, const vector<double>& expected) {
+    double train(double* input_values, double* expected) {
         return backpropagate(recall(input_values), expected);
     }
 
@@ -271,6 +314,7 @@ public:
         o << endl << "Outputs: ";
         for (uint i = 0; i < n_outputs; ++i) o << output[i] << ' ';
         o << endl;
+
     }
 };
 
