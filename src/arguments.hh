@@ -282,7 +282,7 @@ void Arguments::assign_argument(const string& key, const string& value) {
         else if (value[0] == value[1] and value[1] == 'n') {
             Arguments::pacman_ai_agent = NN;
             string extension = ".txt";
-            Arguments::neural_network_path = "../data/" + value + extension;
+            Arguments::neural_network_path = "../data/neural-networks/" + value + extension;
         }
         else error("Invalid pacman AI agent name '" + value + "'");
     }

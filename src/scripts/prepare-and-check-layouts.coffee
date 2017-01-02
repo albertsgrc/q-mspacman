@@ -1,3 +1,5 @@
+#! /usr/bin/env coffee
+
 fs = require 'fs'
 
 LAYOUTS_PATH = "#{__dirname}/../layouts/"

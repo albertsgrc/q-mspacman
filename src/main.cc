@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
                  << "% completion (last " << Arguments::logging_statistics_precision << ")";
 
             if (Arguments::pacman_ai_agent == RL)
-                cout << " :: mse " << total_mse/Arguments::logging_statistics_precision;
+                cout << " :: MSE " << total_mse/Arguments::logging_statistics_precision;
 
             cout.flush();
         }
@@ -101,7 +101,8 @@ int main(int argc, char* argv[]) {
         cout << endl;
 
         RL_Pacman_Agent* agent = ((RL_Pacman_Agent*)(pacman_ai));
-        string nn_path = "../data/nn" + id() + ".txt";
+        system("mkdir -p ../data/neural-networks");
+        string nn_path = "../data/neural-networks/nn" + id() + ".txt";
         agent->nn.write_file(nn_path);
 
         Game game_test;
