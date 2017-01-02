@@ -5,20 +5,23 @@
 #include <time.h>
 #include <sstream>
 
+#define DEV 0 // set dev mode
+#define DEBUG 0 // set debug mode
+
 #include "arguments.hh"
 #include "game.hh"
-#include "agent.hh"
-#include "pathfinding_pacman_agent.hh"
-#include "input_pacman_agent.hh"
-#include "random_pacman_agent.hh"
-#include "rl_pacman_agent.hh"
-#include "nn_pacman_agent.hh"
+#include "agents/pacman/pathfinding_pacman_agent.hh"
+#include "agents/pacman/input_pacman_agent.hh"
+#include "agents/pacman/random_pacman_agent.hh"
+#include "agents/pacman/rl/rl_pacman_agent.hh"
+#include "agents/pacman/rl/nn_pacman_agent.hh"
 
 struct Statistics {
     bool won;
     double completion;
+    double mse;
 
-    Statistics(uint won, double completion) : won(won), completion(completion) {}
+    Statistics(uint won, double completion, double mse) : won(won), completion(completion), mse(mse) {}
 };
 
 string id() {
@@ -28,12 +31,6 @@ string id() {
 }
 
 int main(int argc, char* argv[]) {
-    Direction::LIST = vector<Direction>(4);
-    Direction::LIST[0] = Direction::LEFT;
-    Direction::LIST[1] = Direction::RIGHT;
-    Direction::LIST[2] = Direction::UP;
-    Direction::LIST[3] = Direction::DOWN;
-
     cout.setf(ios::fixed);
     cout.precision(2);
 
@@ -62,23 +59,27 @@ int main(int argc, char* argv[]) {
     uint total_won_always = 0;
     uint total_won = 0;
     double total_completion = 0;
+    double total_mse = 0.0;
     queue<Statistics> Q;
 
     for (int i = 0; i < Arguments::plays; ++i) {
         game.play();
 
         double completion = game.completion();
-        Q.push(Statistics(game.result.won, completion));
+        double mse = Arguments::pacman_ai_agent == RL ? ((RL_Pacman_Agent*)(pacman_ai))->mse_sum_last/game.state.round : 0;
+        Q.push(Statistics(game.result.won, completion, mse));
 
         total_won_always += game.result.won;
         total_won += game.result.won;
         total_completion += completion;
+        total_mse += mse;
 
         if (i >= Arguments::logging_statistics_precision) {
             Statistics r = Q.front();
             Q.pop();
             total_won -= r.won;
             total_completion -= r.completion;
+            total_mse -= r.mse;
         }
 
         if (i + 1 >= Arguments::logging_statistics_precision and i%Arguments::logging_update_rate == Arguments::logging_update_rate - 1) {
@@ -86,6 +87,10 @@ int main(int argc, char* argv[]) {
                  << " (" << total_won_always << "/" << i + 1 << ") ::: "
                  << 100*total_completion/double(Arguments::logging_statistics_precision)
                  << "% completion (last " << Arguments::logging_statistics_precision << ")";
+
+            if (Arguments::pacman_ai_agent == RL)
+                cout << " :: mse " << total_mse/Arguments::logging_statistics_precision;
+
             cout.flush();
         }
 

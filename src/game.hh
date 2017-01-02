@@ -8,14 +8,14 @@
 #include <algorithm>
 #include <vector>
 
-#include "agent.hh"
+#include "agents/agent.hh"
 #include "arguments.hh"
 #include "utils.hh"
-#include "position.hh"
-#include "ghost_agent.hh"
-#include "state.hh"
-#include "pathfinding.hh"
-#include "rl_pacman_agent_inputs.hh"
+#include "state/position.hh"
+#include "agents/ghosts/ghost_agent.hh"
+#include "state/state.hh"
+#include "pathfinding/pathfinding.hh"
+#include "agents/pacman/rl/rl_pacman_agent_inputs.hh"
 
 struct GameResult {
     GameResult() {}
@@ -64,20 +64,17 @@ private:
                             distribution = normal_distribution<float>(ghost.scatter_cycle_rounds, Arguments::cycle_rounds_stdev);
                             ghost.behaviour = Ghost_Behaviour::SCATTER;
                             ghost.scatter_cycle_rounds /= Arguments::scatter_cycle_factor;
-                            ghost.scatter_pos = state.random_valid_pos();
+                            ghost.scatter_pos = State::random_valid_pos();
                         }
                         break;
                     default: ensure(false, "Invalid ghost behaviour");
                 }
 
                 ghost.n_rounds_left_behaviour = max(1, (int) distribution(Arguments::random_generator));
-                _debug("Ghost at position [%d,%d] changes behaviour to %s, %d rounds",
-                      ghost.pos.i, ghost.pos.j, ghost.behaviour == Ghost_Behaviour::SCATTER ? "scatter" : "chase",
-                      (int) (Arguments::pacman_speed*ghost.n_rounds_left_behaviour));
             }
 
             if (ghost.behaviour == SCATTER) {
-                while (ghost.scatter_pos == ghost.pos) ghost.scatter_pos = state.random_valid_pos();
+                while (ghost.scatter_pos == ghost.pos) ghost.scatter_pos = State::random_valid_pos();
             }
         }
     }
@@ -115,6 +112,7 @@ public:
         uint valid_index = 0;
         PathMagic::index_from_pos = vector<vector<int>>(rows, vector<int>(cols, -1));
         State::valid_positions.clear();
+        State::valid_positions_no_spawn.clear();
 
         layout_file >> std::noskipws;
         for (int i = 0; i < rows; ++i) {
@@ -136,11 +134,13 @@ public:
 
                 if (cell != State::WALL) {
                     state.valid_positions.push_back(Position(i, j));
+                    if (cell != State::SPAWN_AREA and cell != State::GHOST) state.valid_positions_no_spawn.push_back(Position(i, j));
                     PathMagic::index_from_pos[i][j] = valid_index++;
                 }
 
                 if (cell == State::PACMAN) state.pacman = Agent_State(Position(i, j), Direction::UP);
                 else if (cell == State::GHOST) {
+                    state.maze[i][j] = State::SPAWN_AREA;
                     state.ghosts.push_back(Ghost_State(Position(i, j), Direction::UP));
                     ghosts.push_back((Agent*)new Ghost_Agent());
                 }
@@ -150,7 +150,7 @@ public:
         state.total_pills = state.n_normal_pills_left + state.n_powerpills_left;
         state.total_powerpills = state.n_powerpills_left;
         state.total_normal_pills = state.n_normal_pills_left;
-        state.distribution_valid_pos = uniform_int_distribution<>(0, state.valid_positions.size() - 1);
+        state.distribution_valid_pos_no_spawn = uniform_int_distribution<>(0, state.valid_positions_no_spawn.size() - 1);
         state.n_ghosts = state.ghosts.size();
 
         SeenMatrix::init(rows, cols);
@@ -204,6 +204,10 @@ public:
 
                     if (cell_content == State::WALL) {
                         _debug("Pacman crashes with wall");
+                    }
+                    else if (cell_content == State::SPAWN_AREA) {
+                        _debug("Pacman crashes with spawn area");
+                        assert(false);
                     }
                     else {
                         state.pacman.pos.move(pacman_direction);
@@ -261,6 +265,8 @@ public:
 
                             if (cell_content == State::WALL) {
                                 _debug("Ghost #%d at [%d,%d] crashes with wall", i, ghost.pos.i, ghost.pos.j);
+                                if (ghost.behaviour == SCATTER) cout << "Scatter " << ghost.scatter_pos << endl;
+                                else cout << "Chase" << endl;
                             }
                             else {
                                 ghost.pos.move(ghost_direction);

@@ -140,10 +140,6 @@ bool between(T x, T l, T r) {
 
 #define foreach(it, c) for (__typeof((c).begin()) it=(c).begin(); it != (c).end(); ++it)
 
-#ifndef DEBUG
-#define DEBUG 0 // set debug mode
-#endif
-
 #if DEBUG
 #define _debug(...) {\
     char str[200];\
@@ -152,10 +148,6 @@ bool between(T x, T l, T r) {
 }
 #else
 #define _debug(...)
-#endif
-
-#ifndef DEV
-#define DEV 1 // set dev mode
 #endif
 
 #if DEV

@@ -3,7 +3,7 @@ fs = require 'fs'
 LAYOUTS_PATH = "#{__dirname}/../layouts/"
 layouts = fs.readdirSync(LAYOUTS_PATH)
 
-VALID_CHARACTERS = [' ', '%', 'P', 'G', 'o', '.']
+VALID_CHARACTERS = [' ', '%', 'P', 'G', 'o', '.', 'X']
 
 countChar = (str, char) -> str.split(char).length - 1
 
