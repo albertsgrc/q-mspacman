@@ -1,6 +1,8 @@
 # q-mspacman
 
-This is an implementation of a Ms. Pacman game simulation and Q-learning AI agent in C++
+This is an implementation of a Ms. Pacman game simulation and Q-learning AI agent in C++.
+
+The Q-learning function is approximated using a multilayer feed-forward neural network.
 
 It was programmed entirely from scratch, following guidelines from the following
 papers:
