@@ -1,6 +1,6 @@
 # q-mspacman
 
-this is an implementation of a Ms. Pacman game simulation and Q-learning AI agent in C++
+This is an implementation of a Ms. Pacman game simulation and Q-learning AI agent in C++
 
 It was programmed entirely from scratch, following guidelines from the following
 papers:
