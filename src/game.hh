@@ -100,25 +100,25 @@ public:
     void load_maze() {
         loaded_maze = true;
 
-        ifstream layout_file;
-        layout_file.open(Arguments::layout_path);
+        ifstream maze_file;
+        maze_file.open(Arguments::maze_path);
 
-        if (not layout_file.is_open())
-            error("Invalid layout file path '" + Arguments::layout_path + "'");
+        if (not maze_file.is_open())
+            error("Invalid maze file path '" + Arguments::maze_path + "'");
 
         int rows, cols;
-        layout_file >> rows >> cols;
+        maze_file >> rows >> cols;
         state.maze = Matrix<char>(rows, cols);
         uint valid_index = 0;
         PathMagic::index_from_pos = vector<vector<int>>(rows, vector<int>(cols, -1));
         State::valid_positions.clear();
         State::valid_positions_no_spawn.clear();
 
-        layout_file >> std::noskipws;
+        maze_file >> std::noskipws;
         for (int i = 0; i < rows; ++i) {
-            char dummy; layout_file >> dummy;
+            char dummy; maze_file >> dummy;
             for (int j = 0; j < cols; ++j) {
-                char cell; layout_file >> cell;
+                char cell; maze_file >> cell;
                 state.maze[i][j] = cell != State::PACMAN and cell != State::GHOST ? cell : State::FREE;
 
                 state.n_normal_pills_left += cell == State::PILL;

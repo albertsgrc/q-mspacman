@@ -9,7 +9,7 @@ enum Pacman_AI_Agent {
     PATHFINDING, INPUT, RANDOM, RL, NN
 };
 
-const string LAYOUT_FOLDER = "./layouts/";
+const string MAZE_FOLDER = "./mazes/";
 
 // ## DEFAULT VALUES ##
 
@@ -18,7 +18,7 @@ const string LAYOUT_FOLDER = "./layouts/";
 // Note that here a round is considered to be the time it takes
 // for pacman to move one cell, which is not the same as an actual game round
 
-const string DFL_LAYOUT_PATH = LAYOUT_FOLDER + "originalClassic.lay";
+const string DFL_MAZE_PATH = MAZE_FOLDER + "originalClassic.lay";
 
 const Pacman_AI_Agent DFL_PACMAN_AI_AGENT = RL;
 
@@ -131,7 +131,7 @@ void error(const string& msg) {
 class Arguments {
 public:
 
-    static string layout_path;
+    static string maze_path;
     static float ghost_speed; // not relative
     static float pacman_speed;
     static float ghost_afraid_speed_fraction;
@@ -181,7 +181,7 @@ public:
     static void postprocess();
 };
 
-string Arguments::layout_path;
+string Arguments::maze_path;
 float Arguments::ghost_speed;
 float Arguments::pacman_speed;
 float Arguments::ghost_afraid_speed_fraction;
@@ -221,7 +221,7 @@ string Arguments::neural_network_path;
 bool Arguments::show_inputs;
 
 void Arguments::init(int argc, char* argv[]) {
-    Arguments::layout_path = DFL_LAYOUT_PATH;
+    Arguments::maze_path = DFL_MAZE_PATH;
     Arguments::ghost_speed = DFL_GHOST_SPEED;
     Arguments::pacman_speed = DFL_PACMAN_SPEED;
     Arguments::ghost_afraid_speed_fraction = DFL_GHOST_AFRAID_SPEED_FRACTION;
@@ -262,7 +262,7 @@ void Arguments::init(int argc, char* argv[]) {
 }
 
 void Arguments::assign_argument(const string& key, const string& value) {
-    if (key == "layout") Arguments::layout_path = LAYOUT_FOLDER + value;
+    if (key == "maze") Arguments::maze_path = MAZE_FOLDER + value;
     else if (key == "ghost_speed") Arguments::ghost_speed = stof(value);
     else if (key == "pacman_speed") Arguments::pacman_speed = stof(value);
     else if (key == "ghost_afraid_speed_fraction") Arguments::ghost_afraid_speed_fraction = stof(value);
