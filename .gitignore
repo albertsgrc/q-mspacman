@@ -4,3 +4,4 @@ docs/source-paper-professor/data
 docs/source-paper-professor/out
 .idea/
 data/
+cmake-build-debug/

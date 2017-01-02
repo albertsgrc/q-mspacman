@@ -38,7 +38,7 @@ public:
         mse_sum_last = mse_sum = 0.0;
     }
 
-    inline Direction take_action(const State& s, uint ghost_id) {
+    inline Direction take_action(const State& s, uint ghost_id) override {
         const Position& pos = s.pacman.pos;
 
         RL_Pacman_Agent_Inputs::set_input();
