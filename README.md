@@ -13,7 +13,7 @@ papers:
 And with the help and supervision of professor Marco A. Wiering from the
 University of Groningen.
 
-**Only tested on Unix platforms**
+Disclaimer: Only tested on **Unix** platforms
 
 ## Download and installation instructions
 
