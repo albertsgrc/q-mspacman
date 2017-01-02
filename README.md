@@ -1,6 +1,8 @@
 # q-mspacman
 
-this is an implementation of a Ms. Pacman game simulation and Q-learning AI agent in C++
+This is an implementation of a Ms. Pacman game simulation and Q-learning AI agent in C++.
+
+The Q-learning function is approximated using a multilayer feed-forward neural network.
 
 It was programmed entirely from scratch, following guidelines from the following
 papers:
@@ -17,9 +19,9 @@ Disclaimer: Only tested on **Unix** platforms
 
 ## Download and installation instructions
 
-1. git clone https://github.com/albertsgrc/q-mspacman.git
-2. cd q-mspacman/src
-3. make
+1. `git clone https://github.com/albertsgrc/q-mspacman.git`
+2. `cd q-mspacman/src`
+3. `make`
 
 In case you want to execute the scripts provided inside the `src/scripts` folder,
 you should also install [coffeescript](http://coffeescript.org/) via [npm](https://www.npmjs.com/).
