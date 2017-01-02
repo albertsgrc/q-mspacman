@@ -5,9 +5,10 @@ Implementation of a Ms. Pacman game simulation and Q-learning AI agent in C++
 It was programmed entirely from scratch, following guidelines from the following
 papers:
 
-- L. Bom *et al* [Reinforcement Learning to Train Ms. Pac-Man Using Higher-order Action-relative Inputs](https://repositories.lib.utexas.edu/bitstream/handle/2152/25046/SCHRUM-DISSERTATION-2014.pdf?sequence=1&isAllowed=y), University of Groningen, Groningen, The Netherlands
-- D. Ballard *et al* [Evolving Multimodal Behavior Through Modular Multiobjective Neuroevolution](https://repositories.lib.utexas.edu/bitstream/handle/2152/25046/SCHRUM-DISSERTATION-2014.pdf?sequence=1&isAllowed=y), University of Texas, Austin, USA
+- L. Bom *et al*, [Reinforcement Learning to Train Ms. Pac-Man Using Higher-order Action-relative Inputs](https://repositories.lib.utexas.edu/bitstream/handle/2152/25046/SCHRUM-DISSERTATION-2014.pdf?sequence=1&isAllowed=y), University of Groningen, Groningen, The Netherlands
+- D. Ballard *et al*, [Evolving Multimodal Behavior Through Modular Multiobjective Neuroevolution](https://repositories.lib.utexas.edu/bitstream/handle/2152/25046/SCHRUM-DISSERTATION-2014.pdf?sequence=1&isAllowed=y), University of Texas, Austin, USA
 - D. B. Ortega, [Machine Learning Applied to Pac-Man](http://upcommons.upc.edu/bitstream/handle/2099.1/26448/108745.pdf?sequence=1), Barcelona School of Informatics, UPC, Barcelona, Spain
+- M. H van der Ree and M. A Wiering, [Reinforcement Learning in the Game of Othello: Learning Against a Fixed Opponent and Learning from Self-Play](https://www.researchgate.net/publication/236645828_Reinforcement_Learning_in_the_Game_of_Othello_Learning_Against_a_Fixed_Opponent_and_Learning_from_Self-Play), University of Groningen, Groningen, The Netherlands
 
 And with the help and supervision of professor Marco A. Wiering from the
 University of Groningen.
