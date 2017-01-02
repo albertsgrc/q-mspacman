@@ -1,6 +1,6 @@
 # q-mspacman
 
-Implementation of a Ms. Pacman game simulation and Q-learning AI agent in C++
+this is an implementation of a Ms. Pacman game simulation and Q-learning AI agent in C++
 
 It was programmed entirely from scratch, following guidelines from the following
 papers:
@@ -34,8 +34,8 @@ can be run with the command `coffee script.coffee`.
 
 ## Run instructions
 
-The generated executable is called `pacman`. There are several program arguments,
-which are specified as in the following example command:
+The generated executable is called `pacman`. It accepts several program arguments,
+which can be specified as in the following example command:
 
 `./pacman argname1=value1 argname2=value2` (etc.)
 
