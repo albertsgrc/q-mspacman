@@ -71,8 +71,8 @@ const double DFL_REWARD_POWERPILL = 6;
 const double DFL_REWARD_KILL_GHOST = 20;
 const double DFL_REWARD_WIN = 50;
 const double DFL_REWARD_LOSE = -350;
-const double DFL_REWARD_REVERSE = -6;
-const double DFL_REWARD_STEP = -10;
+const double DFL_REWARD_REVERSE = 0;
+const double DFL_REWARD_STEP = -5;
 
 const double DFL_DISCOUNT_FACTOR = 0.95;
 
@@ -99,6 +99,8 @@ const int DFL_LOGGING_STATISTICS_PRECISION = 100;
 // For a value of X, the logging information line will be updated every X game plays
 const int DFL_LOGGING_UPDATE_RATE = 5;
 
+const double DFL_VISUALIZATION_SPEED = 1;
+
 /** AI TESTING **/
 
 // Number of games to test the reinforcement learning AI on after
@@ -109,7 +111,6 @@ const int DFL_N_GAMES_TEST = 5000;
 
 // Whether to show the current input values to the console
 const bool DFL_SHOW_INPUTS = false;
-
 
 typedef unsigned int uint;
 void error(const string& msg) {
@@ -169,6 +170,7 @@ public:
     static int n_games_test;
     static string neural_network_path;
     static bool show_inputs;
+    static double visualization_speed;
 
     static void init(int argc, char* argv[]);
 
@@ -219,6 +221,7 @@ int Arguments::logging_update_rate;
 int Arguments::n_games_test;
 string Arguments::neural_network_path;
 bool Arguments::show_inputs;
+double Arguments::visualization_speed;
 
 void Arguments::init(int argc, char* argv[]) {
     Arguments::maze_path = DFL_MAZE_PATH;
@@ -257,6 +260,7 @@ void Arguments::init(int argc, char* argv[]) {
     Arguments::logging_update_rate = DFL_LOGGING_UPDATE_RATE;
     Arguments::n_games_test = DFL_N_GAMES_TEST;
     Arguments::show_inputs = DFL_SHOW_INPUTS;
+    Arguments::visualization_speed = DFL_VISUALIZATION_SPEED;
 
     for (int i = 1; i < argc; ++i) treat_arg(argv[i]);
 }
@@ -312,6 +316,7 @@ void Arguments::assign_argument(const string& key, const string& value) {
     else if (key == "logging_update_rate") logging_update_rate = stoi(value);
     else if (key == "n_games_test") n_games_test = stoi(value);
     else if (key == "show_inputs") show_inputs = value != "0" and value != "false";
+    else if (key == "visualization_speed") visualization_speed = stod(value);
     else error("Invalid argument name '" + key + "'");
 }
 
@@ -349,6 +354,8 @@ void Arguments::postprocess() {
     Arguments::random_generator = mt19937_64(Arguments::random_seed);
 
     Arguments::reward_step *= Arguments::pacman_speed;
+
+    Arguments::visualization_speed = 180000*Arguments::ghost_speed/Arguments::visualization_speed;
 }
 
 #endif

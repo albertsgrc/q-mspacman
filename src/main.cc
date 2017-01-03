@@ -5,8 +5,8 @@
 #include <time.h>
 #include <sstream>
 
-#define DEV 0 // set dev mode
-#define DEBUG 0 // set debug mode
+#define DEV 1 // set dev mode
+#define DEBUG 1 // set debug mode
 
 #include "arguments.hh"
 #include "game.hh"
@@ -83,6 +83,11 @@ int main(int argc, char* argv[]) {
         }
 
         if (i + 1 >= Arguments::logging_statistics_precision and i%Arguments::logging_update_rate == Arguments::logging_update_rate - 1) {
+            /*if (Arguments::pacman_ai_agent == RL and 100*total_won/double(Arguments::logging_statistics_precision) >= 70.0) {
+                string nn_path = "../data/neural-networks-70/nn" + to_string(int(100*total_won/double(Arguments::logging_statistics_precision))) + "-" + id() + ".txt";
+                ((RL_Pacman_Agent *) (pacman_ai))->nn.write_file(nn_path);
+            }*/
+
             cout << "\rWins (last " << Arguments::logging_statistics_precision << "): " << 100*total_won/double(Arguments::logging_statistics_precision) << '%'
                  << " (" << total_won_always << "/" << i + 1 << ") ::: "
                  << 100*total_completion/double(Arguments::logging_statistics_precision)

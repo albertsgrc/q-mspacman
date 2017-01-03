@@ -175,7 +175,7 @@ public:
         while (state.n_powerpills_left + state.n_normal_pills_left > 0) { // break if game_over
             if (Arguments::plays == 1) {
                 cout.flush();
-                usleep(200000*Arguments::ghost_speed);
+                usleep(Arguments::visualization_speed);
             }
 
             update_ghost_states();
