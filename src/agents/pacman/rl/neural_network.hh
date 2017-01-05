@@ -24,16 +24,18 @@ using namespace std;
 
 class Neural_Network {
 private:
-    void reserve() {
+    void reserve(bool only_weights = false) {
         n_weights = n_hidden_neurons*(n_inputs + (n_hidden_layers - 1)*n_hidden_neurons + n_outputs);
         n_bias = n_hidden_neurons*n_hidden_layers + n_outputs;
 
-        hidden = (double*) malloc(sizeof(double)*n_hidden_layers*n_hidden_neurons);
-        output = (double*) malloc(sizeof(double)*n_outputs);
         weights = (double*) malloc(sizeof(double)*n_weights);
         bias = (double*) malloc(sizeof(double)*n_bias);
+
+        hidden = (double*) malloc(sizeof(double)*n_hidden_layers*n_hidden_neurons);
+        output = (double*) malloc(sizeof(double)*n_outputs);
         delta_output = (double*) malloc(sizeof(double)*n_outputs);
         delta_hidden = (double*) malloc(sizeof(double)*n_hidden_layers*n_hidden_neurons);
+
         reserved = true;
     }
 public:
@@ -60,11 +62,11 @@ public:
 
     ~Neural_Network() {
         if (reserved) {
+            free(weights);
+            free(bias);
             free(input);
             free(hidden);
             free(output);
-            free(weights);
-            free(bias);
             free(delta_output);
             free(delta_hidden);
         }
@@ -86,6 +88,18 @@ public:
             weights[i] = distribution(Arguments::random_generator);
 
         for (uint i = 0; i < n_bias; ++i) bias[i] = distribution(Arguments::random_generator);
+    }
+
+    void from_weights(const Neural_Network &o) {
+        n_inputs = o.n_inputs;
+        n_hidden_layers = o.n_hidden_layers;
+        n_hidden_neurons = o.n_hidden_neurons;
+        n_outputs = o.n_outputs;
+
+        if (not reserved) reserve(true);
+
+        memcpy(weights, o.weights, sizeof(double)*n_weights);
+        memcpy(bias, o.bias, sizeof(double)*n_bias);
     }
 
     static inline double sigmoid(double x) {

@@ -21,6 +21,7 @@ struct GameResult {
     GameResult() {}
 
     bool won;
+    double completion;
     State state;
 };
 
@@ -187,8 +188,8 @@ public:
             Direction pacman_direction = pacman->take_action(state, 0);
 
             Position pacman_previous_pos = state.pacman.pos;
-            vector<Position> ghost_previous_pos(4);
-            for (const Ghost_State& g : state.ghosts) ghost_previous_pos.push_back(g.pos);
+            vector<Position> ghost_previous_pos(state.n_ghosts);
+            for (int i = 0; i < state.n_ghosts; ++i) ghost_previous_pos[i] = state.ghosts[i].pos;
 
             // TODO: Maybe process movements stochastically to guarantee equality?
 
@@ -265,8 +266,6 @@ public:
 
                             if (cell_content == State::WALL) {
                                 _debug("Ghost #%d at [%d,%d] crashes with wall", i, ghost.pos.i, ghost.pos.j);
-                                if (ghost.behaviour == SCATTER) cout << "Scatter " << ghost.scatter_pos << endl;
-                                else cout << "Chase" << endl;
                             }
                             else {
                                 ghost.pos.move(ghost_direction);
@@ -289,10 +288,10 @@ public:
                     --ghost.n_rounds_revive;
                 }
 
+                state.ghosts[i].prev = ghost_previous_pos[i];
             }
 
             state.pacman.prev = pacman_previous_pos;
-            for (uint i = 0; i < state.ghosts.size(); ++i) state.ghosts[i].prev = ghost_previous_pos[i];
 
             if (Arguments::plays == 1) cout << state << endl;
         }
@@ -305,12 +304,9 @@ public:
         }
 
         this->result.won = not game_over;
+        this->result.completion = 1 - (state.n_normal_pills_left + state.n_powerpills_left)/double(state.total_pills);
         pacman->notify_game_result(this->result.won);
         return this->result;
-    }
-
-    double completion() {
-        return 1 - (state.n_normal_pills_left + state.n_powerpills_left)/double(state.total_pills);
     }
 };
 

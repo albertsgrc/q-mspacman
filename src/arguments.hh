@@ -9,6 +9,8 @@ enum Pacman_AI_Agent {
     PATHFINDING, INPUT, RANDOM, RL, NN
 };
 
+static const string PACMAN_AI_AGENT_STRINGS[5] = { "pathfinding", "input", "random", "rl", "nn" };
+
 const string MAZE_FOLDER = "./mazes/";
 
 // ## DEFAULT VALUES ##
@@ -68,7 +70,7 @@ const double DFL_LEARNING_RATE = 0.0004;
 
 const double DFL_REWARD_PILL = 12;
 const double DFL_REWARD_POWERPILL = 6;
-const double DFL_REWARD_KILL_GHOST = 20;
+const double DFL_REWARD_KILL_GHOST = 0;
 const double DFL_REWARD_WIN = 50;
 const double DFL_REWARD_LOSE = -350;
 const double DFL_REWARD_REVERSE = 0;
@@ -101,11 +103,15 @@ const int DFL_LOGGING_UPDATE_RATE = 5;
 
 const double DFL_VISUALIZATION_SPEED = 1;
 
+const bool DFL_NON_INTERACTIVE = false;
+
 /** AI TESTING **/
 
 // Number of games to test the reinforcement learning AI on after
 // training
 const int DFL_N_GAMES_TEST = 5000;
+
+const int DFL_TEST_STATISTICS_PRECISION = 50;
 
 /** DEBUGGING **/
 
@@ -126,6 +132,7 @@ void error(const string& msg) {
     3. Implement member: <type> argument; after Arguments class declaration
     4. Assign default value inside init function: Arguments::argument = DFL_ARGUMENT;
     5. Detect and parse argument inside assign_argument function: if (key == "argument") argument = <parse>(value);
+    6. Add string and value to the json map
 */
 
 
@@ -171,6 +178,8 @@ public:
     static string neural_network_path;
     static bool show_inputs;
     static double visualization_speed;
+    static int test_statistics_precision;
+    static bool non_interactive;
 
     static void init(int argc, char* argv[]);
 
@@ -181,6 +190,8 @@ public:
     static void treat_arg(const string& arg);
 
     static void postprocess();
+
+    static vector<pair<string, string>> create_json();
 };
 
 string Arguments::maze_path;
@@ -222,6 +233,8 @@ int Arguments::n_games_test;
 string Arguments::neural_network_path;
 bool Arguments::show_inputs;
 double Arguments::visualization_speed;
+int Arguments::test_statistics_precision;
+bool Arguments::non_interactive;
 
 void Arguments::init(int argc, char* argv[]) {
     Arguments::maze_path = DFL_MAZE_PATH;
@@ -261,8 +274,14 @@ void Arguments::init(int argc, char* argv[]) {
     Arguments::n_games_test = DFL_N_GAMES_TEST;
     Arguments::show_inputs = DFL_SHOW_INPUTS;
     Arguments::visualization_speed = DFL_VISUALIZATION_SPEED;
+    Arguments::test_statistics_precision = DFL_TEST_STATISTICS_PRECISION;
+    Arguments::non_interactive = DFL_NON_INTERACTIVE;
 
     for (int i = 1; i < argc; ++i) treat_arg(argv[i]);
+}
+
+bool stob(const string& v) {
+    return v != "0" and v != "false";
 }
 
 void Arguments::assign_argument(const string& key, const string& value) {
@@ -308,16 +327,62 @@ void Arguments::assign_argument(const string& key, const string& value) {
     else if (key == "reward_reverse") reward_reverse = stod(value);
     else if (key == "reward_step") reward_step = stod(value);
     else if (key == "discount_factor") discount_factor = stod(value);
-    else if (key == "smart_exploration") smart_exploration = value != "0" and value != "false";
+    else if (key == "smart_exploration") smart_exploration = stob(value);
     else if (key == "safe_distance_margin") safe_distance_margin = stoi(value);
     else if (key == "max_intersection_distance") max_intersection_distance = stoi(value);
     else if (key == "close_powerpill_distance") close_powerpill_distance = stoi(value);
     else if (key == "logging_statistics_precision") logging_statistics_precision = stoi(value);
     else if (key == "logging_update_rate") logging_update_rate = stoi(value);
     else if (key == "n_games_test") n_games_test = stoi(value);
-    else if (key == "show_inputs") show_inputs = value != "0" and value != "false";
+    else if (key == "show_inputs") show_inputs = stob(value);
     else if (key == "visualization_speed") visualization_speed = stod(value);
+    else if (key == "test_statistics_precision") test_statistics_precision = stoi(value);
+    else if (key == "non_interactive") non_interactive = stob(value);
     else error("Invalid argument name '" + key + "'");
+}
+
+inline vector<pair<string, string>> Arguments::create_json() {
+    return {
+            { "maze", '"' + maze_path + '"' },
+            { "ghost_speed", to_string(ghost_speed) },
+            { "pacman_speed", to_string(pacman_speed) },
+            { "ghost_afraid_speed_fraction", to_string(ghost_afraid_speed_fraction) },
+            { "n_rounds_powerpill", to_string(n_rounds_powerpill) },
+            { "n_rounds_ghost_revive", to_string(n_rounds_ghost_revive) },
+            { "scatter_cycle_factor", to_string(scatter_cycle_factor) },
+            { "chase_cycle_factor", to_string(chase_cycle_factor) },
+            { "initial_scatter_cycle_rounds", to_string(initial_scatter_cycle_rounds) },
+            { "initial_chase_cycle_rounds", to_string(initial_chase_cycle_rounds) },
+            { "cycle_rounds_stdev", to_string(cycle_rounds_stdev) },
+            { "n_rounds_between_ghosts_start", to_string(n_rounds_between_ghosts_start) },
+            { "pacman_ai_agent", '"' + (pacman_ai_agent == NN ? neural_network_path : PACMAN_AI_AGENT_STRINGS[pacman_ai_agent]) + '"' },
+            { "plays", to_string(plays) },
+            { "random_seed", to_string(Arguments::random_seed ) },
+            { "n_hidden_layers", to_string(n_hidden_layers) },
+            { "n_hidden_neurons", to_string(n_hidden_neurons) },
+            { "min_weight_init", to_string(min_weight_init) },
+            { "max_weight_init", to_string(max_weight_init) },
+            { "learning_rate", to_string(learning_rate) },
+            { "reward_pill", to_string(reward_pill) },
+            { "reward_powerpill", to_string(reward_powerpill) },
+            { "reward_kill_ghost", to_string(reward_kill_ghost) },
+            { "reward_win", to_string(reward_win) },
+            { "reward_lose", to_string(reward_lose) },
+            { "reward_reverse", to_string(reward_reverse) },
+            { "reward_step", to_string(reward_step) },
+            { "discount_factor", to_string(discount_factor) },
+            { "smart_exploration", to_string(smart_exploration) },
+            { "safe_distance_margin", to_string(safe_distance_margin) },
+            { "max_intersection_distance", to_string(max_intersection_distance) },
+            { "close_powerpill_distance", to_string(close_powerpill_distance) },
+            { "logging_statistics_precision", to_string(logging_statistics_precision) },
+            { "logging_update_rate", to_string(logging_update_rate) },
+            { "n_games_test", to_string(n_games_test) },
+            { "show_inputs", to_string(show_inputs) },
+            { "visualization_speed", to_string(visualization_speed) },
+            { "test_statistics_precision", to_string(test_statistics_precision) },
+            { "non_interactive", to_string(non_interactive) }
+    };
 }
 
 void Arguments::treat_arg(const string& arg) {

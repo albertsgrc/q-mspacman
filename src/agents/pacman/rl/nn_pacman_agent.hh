@@ -27,6 +27,11 @@ public:
         input = vector<double>(RL_Pacman_Agent_Inputs::n_inputs);
     }
 
+    NN_Pacman_Agent(const Neural_Network& o) : nn(o) {
+        ensure(nn.n_inputs == uint(RL_Pacman_Agent_Inputs::n_inputs), "This neural network was trained with different inputs");
+        input = vector<double>(RL_Pacman_Agent_Inputs::n_inputs);
+    }
+
     inline Direction take_action(const State& s, uint ghost_id) {
         const Position& pos = s.pacman.pos;
 

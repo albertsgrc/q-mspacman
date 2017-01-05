@@ -92,7 +92,8 @@ public:
         // in the long term
 
         double expected[1] = { reward + (s.round > 1 ? Arguments::discount_factor*max_q : 0) };
-        mse_sum += nn.train(&previous_input[0], expected);
+        double mse = nn.train(&previous_input[0], expected);
+        mse_sum += mse;
 
         previous_input.swap(max_input);
 

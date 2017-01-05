@@ -36,7 +36,7 @@ public:
         max_distance_inverse = 1.0/State::max_dist;
         n_ghosts_inverse = 1.0/State::n_ghosts;
         n_intersections_inverse = PathMagic::intersections.size() > 0 ? 1.0/PathMagic::intersections.size() : 1;
-        n_inputs = State::n_ghosts*4 + Arguments::max_intersection_distance + 13;
+        n_inputs = State::n_ghosts*4 + Arguments::max_intersection_distance + 11;
     }
 
     static inline void set_input() {
@@ -221,8 +221,8 @@ public:
         add_input((s.max_dist + PathMagic::corrected_dist_exact(pos_id, closest_intersection, s.pacman)*Arguments::ghost_speed
                    - ghost_dist_intersection)*max_distance_inverse, input);
 
-        add_input(pos.i/double(s.maze.rows()), input);
-        add_input(pos.j/double(s.maze.cols()), input);
+        //add_input(pos.i/double(s.maze.rows()), input);
+        //add_input(pos.j/double(s.maze.cols()), input);
 
         ensure(current_input == n_inputs, "The number of inputs is incorrect");
         current_input = previous_current_input;
