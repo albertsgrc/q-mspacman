@@ -72,9 +72,18 @@ public:
             }
         }
 
-        double adv = double(n_games)/Arguments::plays;
+        double progression = double(n_games)/Arguments::plays;
+
+        bool should_explore =
+                Arguments::exploration_strategy == ANNEALING ?
+                    randdouble() >= clamp(progression,
+                                          Arguments::exploration_annealing_min_progression,
+                                          Arguments::exploration_annealing_max_progression)
+                            :
+                    (randdouble() < Arguments::exploration_epsilon and progression < Arguments::exploration_epsilon_stop_progression);
+
         Direction take;
-        if (randdouble() >= clamp(adv, 0.1, 0.97) and adv < 0.97) { // epsilon-learning (prob. 0.1) is also really good!
+        if (should_explore) { // epsilon-learning (prob. 0.1) is also really good!
             if (Arguments::smart_exploration) {
                 if (s.pacman.pos != s.pacman.prev)  {
                     take = valid_dirs_no_opposite.size() > 0 ?

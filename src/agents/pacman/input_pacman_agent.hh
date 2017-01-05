@@ -12,7 +12,7 @@
 
 class Input_Pacman_Agent: public Agent {
     // In this case ghost_id can be ignored
-    Direction take_action(const State& s, uint ghost_id) {
+    inline Direction take_action(const State& s, uint ghost_id) {
         r:
         char c;
         cin >> c;

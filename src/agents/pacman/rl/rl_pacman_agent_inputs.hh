@@ -36,7 +36,7 @@ public:
         max_distance_inverse = 1.0/State::max_dist;
         n_ghosts_inverse = 1.0/State::n_ghosts;
         n_intersections_inverse = PathMagic::intersections.size() > 0 ? 1.0/PathMagic::intersections.size() : 1;
-        n_inputs = State::n_ghosts*4 + Arguments::max_intersection_distance + 11;
+        n_inputs = State::n_ghosts*4 + Arguments::max_intersection_distance + 9;
     }
 
     static inline void set_input() {
@@ -105,7 +105,6 @@ public:
         add_input((s.total_powerpills - (s.n_powerpills_left))*total_powerpills_inverse, input);
         add_input((s.total_normal_pills - (s.n_normal_pills_left))*total_normal_pills_inverse, input);
         add_input(s.n_rounds_powerpill*total_rounds_powerpill_inverse, input);
-        add_input(dist_powerpill <= Arguments::close_powerpill_distance, input);
 
         int n_scared = 0;
         if (s.n_rounds_powerpill > 0)
@@ -188,13 +187,10 @@ public:
             add_input(in, input);
         }
 
-        int min_d = s.max_dist;
         int closest_intersection = -1;
-        if (PathMagic::is_intersection(pos)) {
-            closest_intersection = pos_id;
-            min_d = 0;
-        }
+        if (PathMagic::is_intersection(pos)) closest_intersection = pos_id;
         else {
+            int min_d = s.max_dist;
             for (int intersection : PathMagic::enclosing_intersections[pos_id]) {
                 if (PathMagic::distances[intersection][pos_id] < min_d) {
                     min_d = PathMagic::distances[intersection][pos_id];
@@ -202,8 +198,6 @@ public:
                 }
             }
         }
-
-        add_input(min_d*max_distance_inverse, input);
 
         int dir_index = Direction::index(d);
         for (int i = 0; i < Arguments::max_intersection_distance; ++i)
@@ -221,9 +215,6 @@ public:
         add_input((s.max_dist + PathMagic::corrected_dist_exact(pos_id, closest_intersection, s.pacman)*Arguments::ghost_speed
                    - ghost_dist_intersection)*max_distance_inverse, input);
 
-        //add_input(pos.i/double(s.maze.rows()), input);
-        //add_input(pos.j/double(s.maze.cols()), input);
-
         ensure(current_input == n_inputs, "The number of inputs is incorrect");
         current_input = previous_current_input;
     }
@@ -237,7 +228,6 @@ public:
         debug_helper("U: Powerpill progress", input, i);
         debug_helper("U: Normal pill progress", input, i);
         debug_helper("U: Powerpill rounds left", input, i);
-        debug_helper("U: Powerpill at distance <= 10", input, i);
         debug_helper("U: Proportion of scared ghosts", input, i);
         debug_helper("Going in that direction", input, i);
         debug_helper("Distance closest pill (any)", input, i);
@@ -250,15 +240,11 @@ public:
             debug_helper("Intersections to " + to_string(j) + " closest ghost", input, i);
         }
 
-        debug_helper("Distance closest intersection", input, i);
-
         for (int j = 0; j < Arguments::max_intersection_distance; ++j)
             debug_helper("Proportion of safe paths " + to_string(j) + " int away", input, i);
 
         debug_helper("Will be trapped", input, i);
         debug_helper("Ghost danger", input, i);
-        debug_helper("Pacman i position", input, i);
-        debug_helper("Pacman j position", input, i);
 
         ensure(i == n_inputs, "The number of inputs is incorrect");
     }

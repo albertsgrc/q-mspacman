@@ -117,14 +117,7 @@ struct PathMagic {
     }
 
     static inline int corrected_dist(int from, int to, const Agent_State& s, double speed) {
-        if (from == to) return 0;
-
-        double distance = PathMagic::distances[from][to];
-
-        if (Direction::index(s.dir) == PathMagic::direction_from_to[from][to]) distance -= s.step;
-        else distance += s.step;
-
-        return (int) ceil(distance/speed);
+        return (int) ceil(corrected_dist_exact(from, to, s)/speed);
     }
 
     static inline double corrected_dist_exact(int from, int to, const Agent_State& s) {

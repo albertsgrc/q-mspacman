@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     bool is_rl = Arguments::pacman_ai_agent == RL;
     cout << "Wins || Completion" << (is_rl ? " || MSE" : "") <<  " (Last " << s_log.precision << " :: Always)" << endl;
 
-    int i_start_evaluation = Arguments::plays*0.85;
+    int i_start_evaluation = Arguments::plays*Arguments::nn_evaluation_start;
     for (int i = 0; i < Arguments::plays; ++i) {
         game.play();
 
@@ -165,9 +165,14 @@ int main(int argc, char* argv[]) {
         s_test.new_observation(info);
 
         double win_ratio_test;
-        if (i >= i_start_evaluation and is_rl and (win_ratio_test = s_test.avg().won) > max_win_ratio) {
-            max_win_ratio = win_ratio_test;
-            max_nn.from_weights(((RL_Pacman_Agent *) (pacman_ai))->nn);
+        if (i >= i_start_evaluation and is_rl) {
+            if (Arguments::nn_evaluation_attribute == WINS) win_ratio_test = s_test.avg().won;
+            else win_ratio_test = s_test.avg().completion;
+
+            if (win_ratio_test > max_win_ratio) {
+                max_win_ratio = win_ratio_test;
+                max_nn.from_weights(((RL_Pacman_Agent *) (pacman_ai))->nn);
+            }
         }
 
         if (i%Arguments::logging_update_rate == Arguments::logging_update_rate - 1) {

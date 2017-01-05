@@ -11,6 +11,18 @@ enum Pacman_AI_Agent {
 
 static const string PACMAN_AI_AGENT_STRINGS[5] = { "pathfinding", "input", "random", "rl", "nn" };
 
+enum Fitness_Attribute {
+    COMPLETION, WINS
+};
+
+static const string FITNESS_ATTRIBUTES_STRINGS[2] = { "completion", "wins" };
+
+enum Exploration_Strategy{
+    ANNEALING, EPSILON
+};
+
+static const string EXPLORATION_STRATEGY_STRINGS[2] = { "annealing", "epsilon" };
+
 const string MAZE_FOLDER = "./mazes/";
 
 // ## DEFAULT VALUES ##
@@ -83,6 +95,13 @@ const double DFL_DISCOUNT_FACTOR = 0.95;
 // until it has moved from its current cell
 const bool DFL_SMART_EXPLORATION = true;
 
+const Exploration_Strategy DFL_EXPLORATION_STRATEGY = ANNEALING;
+
+const double DFL_EXPLORATION_ANNEALING_MIN_PROGRESSION = 0;
+const double DFL_EXPLORATION_ANNEALING_MAX_PROGRESSION = 0.97;
+const double DFL_EXPLORATION_EPSILON = 0.1;
+const double DFL_EXPLORATION_EPSILON_STOP_PROGRESSION = 0.97;
+
 /** Q-LEARNING INPUT ALGORITHMS ARGUMENTS **/
 
 // Pacman would not die unless staying still this number of rounds after reaching an intersection considered safe
@@ -90,8 +109,6 @@ const int DFL_SAFE_DISTANCE_MARGIN = 4;
 // For a value of X, we only consider positions <= X intersections away
 // pacman's current position for the inputs
 const int DFL_MAX_INTERSECTION_DISTANCE = 3;
-// Distance for a powerpill to be considered to be close to pacman
-const int DFL_CLOSE_POWERPILL_DISTANCE = 10;
 
 /** INFORMATION LOGGING ARGUMENTS **/
 
@@ -112,6 +129,11 @@ const bool DFL_NON_INTERACTIVE = false;
 const int DFL_N_GAMES_TEST = 5000;
 
 const int DFL_TEST_STATISTICS_PRECISION = 50;
+
+/** BEST AI SELECTION **/
+
+const double DFL_NN_EVALUATION_START = 0.85;
+const Fitness_Attribute DFL_NN_EVALUATION_ATTRIBUTE = WINS;
 
 /** DEBUGGING **/
 
@@ -171,7 +193,6 @@ public:
     static bool smart_exploration;
     static int safe_distance_margin;
     static int max_intersection_distance;
-    static int close_powerpill_distance;
     static int logging_statistics_precision;
     static int logging_update_rate;
     static int n_games_test;
@@ -180,6 +201,13 @@ public:
     static double visualization_speed;
     static int test_statistics_precision;
     static bool non_interactive;
+    static double nn_evaluation_start;
+    static Fitness_Attribute nn_evaluation_attribute;
+    static Exploration_Strategy exploration_strategy;
+    static double exploration_annealing_min_progression;
+    static double exploration_annealing_max_progression;
+    static double exploration_epsilon;
+    static double exploration_epsilon_stop_progression;
 
     static void init(int argc, char* argv[]);
 
@@ -226,7 +254,6 @@ double Arguments::discount_factor;
 bool Arguments::smart_exploration;
 int Arguments::safe_distance_margin;
 int Arguments::max_intersection_distance;
-int Arguments::close_powerpill_distance;
 int Arguments::logging_statistics_precision;
 int Arguments::logging_update_rate;
 int Arguments::n_games_test;
@@ -235,6 +262,13 @@ bool Arguments::show_inputs;
 double Arguments::visualization_speed;
 int Arguments::test_statistics_precision;
 bool Arguments::non_interactive;
+double Arguments::nn_evaluation_start;
+Fitness_Attribute Arguments::nn_evaluation_attribute;
+Exploration_Strategy Arguments::exploration_strategy;
+double Arguments::exploration_annealing_min_progression;
+double Arguments::exploration_annealing_max_progression;
+double Arguments::exploration_epsilon;
+double Arguments::exploration_epsilon_stop_progression;
 
 void Arguments::init(int argc, char* argv[]) {
     Arguments::maze_path = DFL_MAZE_PATH;
@@ -268,7 +302,6 @@ void Arguments::init(int argc, char* argv[]) {
     Arguments::smart_exploration = DFL_SMART_EXPLORATION;
     Arguments::safe_distance_margin = DFL_SAFE_DISTANCE_MARGIN;
     Arguments::max_intersection_distance = DFL_MAX_INTERSECTION_DISTANCE;
-    Arguments::close_powerpill_distance = DFL_CLOSE_POWERPILL_DISTANCE;
     Arguments::logging_statistics_precision = DFL_LOGGING_STATISTICS_PRECISION;
     Arguments::logging_update_rate = DFL_LOGGING_UPDATE_RATE;
     Arguments::n_games_test = DFL_N_GAMES_TEST;
@@ -276,6 +309,13 @@ void Arguments::init(int argc, char* argv[]) {
     Arguments::visualization_speed = DFL_VISUALIZATION_SPEED;
     Arguments::test_statistics_precision = DFL_TEST_STATISTICS_PRECISION;
     Arguments::non_interactive = DFL_NON_INTERACTIVE;
+    Arguments::nn_evaluation_start = DFL_NN_EVALUATION_START;
+    Arguments::nn_evaluation_attribute = DFL_NN_EVALUATION_ATTRIBUTE;
+    Arguments::exploration_strategy = DFL_EXPLORATION_STRATEGY;
+    Arguments::exploration_annealing_min_progression = DFL_EXPLORATION_ANNEALING_MIN_PROGRESSION;
+    Arguments::exploration_annealing_max_progression = DFL_EXPLORATION_ANNEALING_MAX_PROGRESSION;
+    Arguments::exploration_epsilon = DFL_EXPLORATION_EPSILON;
+    Arguments::exploration_epsilon_stop_progression = DFL_EXPLORATION_EPSILON_STOP_PROGRESSION;
 
     for (int i = 1; i < argc; ++i) treat_arg(argv[i]);
 }
@@ -330,7 +370,6 @@ void Arguments::assign_argument(const string& key, const string& value) {
     else if (key == "smart_exploration") smart_exploration = stob(value);
     else if (key == "safe_distance_margin") safe_distance_margin = stoi(value);
     else if (key == "max_intersection_distance") max_intersection_distance = stoi(value);
-    else if (key == "close_powerpill_distance") close_powerpill_distance = stoi(value);
     else if (key == "logging_statistics_precision") logging_statistics_precision = stoi(value);
     else if (key == "logging_update_rate") logging_update_rate = stoi(value);
     else if (key == "n_games_test") n_games_test = stoi(value);
@@ -338,6 +377,21 @@ void Arguments::assign_argument(const string& key, const string& value) {
     else if (key == "visualization_speed") visualization_speed = stod(value);
     else if (key == "test_statistics_precision") test_statistics_precision = stoi(value);
     else if (key == "non_interactive") non_interactive = stob(value);
+    else if (key == "nn_evaluation_start") nn_evaluation_start = stod(value);
+    else if (key == "nn_evaluation_attribute") {
+        if (value == "wins") nn_evaluation_attribute = WINS;
+        else if (value == "completion") nn_evaluation_attribute = COMPLETION;
+        else error("Invalid neural network evaluation attribute name '" + value + "'");
+    }
+    else if (key == "exploration_strategy") {
+        if (value.substr(0, 9) == "annealing") exploration_strategy = ANNEALING;
+        else if (value.substr(0, 7) == "epsilon") exploration_strategy = EPSILON;
+        else error("Invalid exploration strategy attribute name '" + value + "'");
+    }
+    else if (key == "exploration_annealing_min_progression") exploration_annealing_min_progression = stod(value);
+    else if (key == "exploration_annealing_max_progression") exploration_annealing_max_progression = stod(value);
+    else if (key == "exploration_epsilon") exploration_epsilon = stod(value);
+    else if (key == "exploration_epsilon_stop_progression") exploration_epsilon_stop_progression = stod(value);
     else error("Invalid argument name '" + key + "'");
 }
 
@@ -374,14 +428,20 @@ inline vector<pair<string, string>> Arguments::create_json() {
             { "smart_exploration", to_string(smart_exploration) },
             { "safe_distance_margin", to_string(safe_distance_margin) },
             { "max_intersection_distance", to_string(max_intersection_distance) },
-            { "close_powerpill_distance", to_string(close_powerpill_distance) },
             { "logging_statistics_precision", to_string(logging_statistics_precision) },
             { "logging_update_rate", to_string(logging_update_rate) },
             { "n_games_test", to_string(n_games_test) },
             { "show_inputs", to_string(show_inputs) },
             { "visualization_speed", to_string(visualization_speed) },
             { "test_statistics_precision", to_string(test_statistics_precision) },
-            { "non_interactive", to_string(non_interactive) }
+            { "non_interactive", to_string(non_interactive) },
+            { "nn_evaluation_start", to_string(nn_evaluation_start) },
+            { "nn_evaluation_attribute", '"' + FITNESS_ATTRIBUTES_STRINGS[nn_evaluation_attribute] + '"'},
+            { "exploration_strategy", '"' + EXPLORATION_STRATEGY_STRINGS[exploration_strategy] + '"' },
+            { "exploration_annealing_min_progression", to_string(exploration_annealing_min_progression) },
+            { "exploration_annealing_max_progression", to_string(exploration_annealing_max_progression) },
+            { "exploration_epsilon", to_string(exploration_epsilon) },
+            { "exploration_epsilon_stop_progression", to_string(exploration_epsilon_stop_progression) }
     };
 }
 

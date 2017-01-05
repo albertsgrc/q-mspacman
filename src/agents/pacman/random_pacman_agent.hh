@@ -14,7 +14,7 @@
 class Random_Pacman_Agent: public Agent {
 
     // In this case ghost_id can be ignored
-    Direction take_action(const State& s, uint ghost_id) {
+    inline Direction take_action(const State& s, uint ghost_id) {
         if (s.pacman.pos != s.pacman.prev) return PathMagic::random_valid_dir(s.pacman.pos);
         else return s.pacman.dir;
     }

@@ -13,7 +13,7 @@ public:
 
     virtual ~Ghost_Agent() {}
 
-    Direction take_action(const State& s, uint ghost_id) {
+    inline Direction take_action(const State& s, uint ghost_id) {
         const Ghost_State& ghost = s.ghosts[ghost_id];
 
         if (ghost.pos != ghost.prev) {

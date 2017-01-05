@@ -10,7 +10,7 @@
 class Pathfinding_Pacman_Agent: public Agent {
 
     // In this case ghost_id can be ignored
-    Direction take_action(const State& s, uint ghost_id) {
+    inline Direction take_action(const State& s, uint ghost_id) {
         if (s.distance_closest_harmful_ghost(s.pacman.pos) < 10) {
             return wsp(s.pacman.pos,
                        [&s](const Position& pos) { return s.has_any_pill(pos); },

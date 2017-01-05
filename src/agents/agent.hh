@@ -14,7 +14,6 @@ public:
     virtual inline void notify_eaten_powerpill() {}
     virtual inline void notify_killed_ghost() {}
     virtual inline void notify_reverse_direction() {}
-    virtual inline void before_start(const State& s) {}
 };
 
 #endif
