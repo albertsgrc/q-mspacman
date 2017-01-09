@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <time.h>
 #include <sstream>
+#include <iomanip>
 
 #define DEV 1 // set dev mode
 #define DEBUG 1 // set debug mode
@@ -103,9 +104,16 @@ void print_info(const Statistics& s, bool mse) {
     if (mse) cout << " || " << average_always.mse;
 }
 
+string pad(string s, char c, uint length) {
+    string m;
+    stringstream ss(m);
+    ss << std::setfill(c) << std::setw(length) << s;
+    return ss.str();
+}
+
 string id() {
     stringstream ss;
-    ss << time(0) << rand()%100;
+    ss << time(0) << pad(to_string(rand()%100), '0', 2);
     return ss.str();
 }
 
@@ -155,6 +163,7 @@ int main(int argc, char* argv[]) {
     bool is_rl = Arguments::pacman_ai_agent == RL;
     cout << "Wins || Completion" << (is_rl ? " || MSE" : "") <<  " (Last " << s_log.precision << " :: Always)" << endl;
 
+    /** TRAINING STAGE **/
     int i_start_evaluation = Arguments::plays*Arguments::nn_evaluation_start;
     for (int i = 0; i < Arguments::plays; ++i) {
         game.play();
@@ -190,7 +199,8 @@ int main(int argc, char* argv[]) {
 
     string nn_id;
 
-    if (is_rl) {
+    /** TESTING STAGE **/
+    if (is_rl and max_nn.reserved) {
         cout << endl << "Testing best agent: Wins || Completion" << endl;
 
         Game game_test;
@@ -216,7 +226,7 @@ int main(int argc, char* argv[]) {
             game_test.reset();
         }
 
-        nn_id = "nn" + id() + "-" + to_string(int(1000*avg.won));
+        nn_id = "nn" + id() + "-" + pad(to_string(int(1000*avg.won)), '0', 3);
 
         system("mkdir -p ../data/neural-networks");
         string nn_path = "../data/neural-networks/" + nn_id + ".txt";
@@ -239,21 +249,23 @@ int main(int argc, char* argv[]) {
         file.open(statistics_path);
 
         StatisticInfo info = is_rl ? s_log_test.avg_always() : s_log.avg_always();
-        write_json(
-                {
-                        { "arguments", ss.str() },
-                        { "wins", to_string(info.won) },
-                        { "completion", to_string(info.completion) },
-                        { "mse", to_string(s_log.avg().mse) },
-                        { "neural_network", (is_rl ? ('"' + nn_id + '"') : "null") },
-                        { "timestamp", to_string(time(0)) }
-                },
-                file
-        );
+
+        vector<pair<string, string>> json = {
+                { "arguments", ss.str() },
+                { "wins", to_string(info.won) },
+                { "completion", to_string(info.completion) },
+                { "mse", to_string(s_log.avg().mse) },
+                { "neural_network", (is_rl ? ('"' + nn_id + '"') : "null") },
+                { "timestamp", to_string(time(0)) }
+        };
+
+        write_json(json, file);
 
         file.close();
 
         cout << endl << "Written statistics information to " + statistics_path;
+
+        write_json(json, cerr);
     }
 
     cout << endl;

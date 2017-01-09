@@ -80,13 +80,13 @@ const double DFL_LEARNING_RATE = 0.0004;
 
 /** Q-LEARNING ARGUMENTS **/
 
-const double DFL_REWARD_PILL = 12;
-const double DFL_REWARD_POWERPILL = 6;
-const double DFL_REWARD_KILL_GHOST = 0;
-const double DFL_REWARD_WIN = 50;
+const double DFL_REWARD_PILL = 9;
+const double DFL_REWARD_POWERPILL = 11;
+const double DFL_REWARD_KILL_GHOST = 6;
+const double DFL_REWARD_WIN = 60;
 const double DFL_REWARD_LOSE = -350;
-const double DFL_REWARD_REVERSE = 0;
-const double DFL_REWARD_STEP = -5;
+const double DFL_REWARD_REVERSE = -1;
+const double DFL_REWARD_STEP = -4;
 
 const double DFL_DISCOUNT_FACTOR = 0.95;
 
@@ -97,15 +97,15 @@ const bool DFL_SMART_EXPLORATION = true;
 
 const Exploration_Strategy DFL_EXPLORATION_STRATEGY = ANNEALING;
 
-const double DFL_EXPLORATION_ANNEALING_MIN_PROGRESSION = 0;
-const double DFL_EXPLORATION_ANNEALING_MAX_PROGRESSION = 0.97;
-const double DFL_EXPLORATION_EPSILON = 0.1;
-const double DFL_EXPLORATION_EPSILON_STOP_PROGRESSION = 0.97;
+const double DFL_EXPLORATION_ANNEALING_MIN_PROGRESSION = 0.15;
+const double DFL_EXPLORATION_ANNEALING_MAX_PROGRESSION = 0.95;
+const double DFL_EXPLORATION_EPSILON = 0.25;
+const double DFL_EXPLORATION_EPSILON_STOP_PROGRESSION = 0.95;
 
 /** Q-LEARNING INPUT ALGORITHMS ARGUMENTS **/
 
 // Pacman would not die unless staying still this number of rounds after reaching an intersection considered safe
-const int DFL_SAFE_DISTANCE_MARGIN = 4;
+const int DFL_SAFE_DISTANCE_MARGIN = 3;
 // For a value of X, we only consider positions <= X intersections away
 // pacman's current position for the inputs
 const int DFL_MAX_INTERSECTION_DISTANCE = 3;
@@ -128,7 +128,7 @@ const bool DFL_NON_INTERACTIVE = false;
 // training
 const int DFL_N_GAMES_TEST = 5000;
 
-const int DFL_TEST_STATISTICS_PRECISION = 50;
+const int DFL_TEST_STATISTICS_PRECISION = 200;
 
 /** BEST AI SELECTION **/
 

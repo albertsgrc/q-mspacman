@@ -1,0 +1,21 @@
+{
+  "name": "tests",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^1.1.3",
+    "chalk256": "^5.1.0",
+    "lodash": "^4.17.4",
+    "queue": "^4.0.1",
+    "readline": "^1.3.0",
+    "readline-sync": "^1.4.5",
+    "summary": "^0.3.2",
+    "ttest": "^1.1.0",
+  }
+}
