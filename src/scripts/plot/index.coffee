@@ -118,3 +118,49 @@ for name, experimentSet of experimentSets
     for measure in MEASURES
         for statistic in STATISTICS
             createChart(experimentSet, measure, statistic, name)
+
+
+wins = []
+mse = []
+completion = []
+for file in fs.readdirSync("#{DATA_PATH}statistics") when file[0] isnt "."
+    json = JSON.parse(fs.readFileSync("#{DATA_PATH}statistics/#{file}", encoding: "utf-8"))
+    wins.push(json.wins)
+    mse.push(json.mse)
+    completion.push(json.completion)
+
+mse = mse.map(Math.log)
+
+scatter = (name, x, y) ->
+    chartNode = new ChartjsNode(800, 800)
+
+    chartNode.drawChart({
+        type: 'line',
+        data: {
+            datasets: [
+                {
+                    label: 'Scatter'
+                    data: ({x : x[i], y: y[i]} for elem, i in x)
+                    fill: no
+                    borderColor: 'red'
+                }
+            ]
+        },
+        options: {
+            showLines: no
+            scales: {
+                xAxes: [{
+                    type: 'linear'
+                    position: 'bottom'
+                }]
+            }
+        }
+    })
+    .then(-> chartNode.getImageBuffer('image/png'))
+    .then((buffer) -> chartNode.getImageStream('image/png'))
+    .then((streamResult) -> chartNode.writeImageToFile('image/png', PLOTS_PATH + "#{name}.png"))
+    .then(-> console.log "Plot saved");
+
+scatter("winsvsmse", mse, wins);
+scatter("completionvsmse", mse, completion);
+scatter("winsvscompletion", completion, wins);

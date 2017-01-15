@@ -73,8 +73,7 @@ const size_t DFL_RANDOM_SEED = time(0);
 const int DFL_N_HIDDEN_LAYERS = 1;
 const int DFL_N_HIDDEN_NEURONS = 100;
 // For the random initialization of the weights in the neural network
-const double DFL_MIN_WEIGHT_INIT = -0.3;
-const double DFL_MAX_WEIGHT_INIT = 0.3;
+
 const double DFL_LEARNING_RATE = 0.0004;
 
 
@@ -179,8 +178,6 @@ public:
     static mt19937_64 random_generator;
     static int n_hidden_layers;
     static int n_hidden_neurons;
-    static double min_weight_init;
-    static double max_weight_init;
     static double learning_rate;
     static double reward_pill;
     static double reward_powerpill;
@@ -240,8 +237,6 @@ uint Arguments::random_seed;
 mt19937_64 Arguments::random_generator;
 int Arguments::n_hidden_layers;
 int Arguments::n_hidden_neurons;
-double Arguments::min_weight_init;
-double Arguments::max_weight_init;
 double Arguments::learning_rate;
 double Arguments::reward_pill;
 double Arguments::reward_powerpill;
@@ -288,8 +283,6 @@ void Arguments::init(int argc, char* argv[]) {
     Arguments::random_seed = DFL_RANDOM_SEED;
     Arguments::n_hidden_layers = DFL_N_HIDDEN_LAYERS;
     Arguments::n_hidden_neurons = DFL_N_HIDDEN_NEURONS;
-    Arguments::min_weight_init = DFL_MIN_WEIGHT_INIT;
-    Arguments::max_weight_init = DFL_MAX_WEIGHT_INIT;
     Arguments::learning_rate = DFL_LEARNING_RATE;
     Arguments::reward_pill = DFL_REWARD_PILL;
     Arguments::reward_powerpill = DFL_REWARD_POWERPILL;
@@ -356,8 +349,6 @@ void Arguments::assign_argument(const string& key, const string& value) {
     }
     else if (key == "n_hidden_layers") Arguments::n_hidden_layers = stoi(value);
     else if (key == "n_hidden_neurons") Arguments::n_hidden_neurons = stoi(value);
-    else if (key == "min_weight_init") Arguments::min_weight_init = stod(value);
-    else if (key == "max_weight_init") Arguments::max_weight_init = stod(value);
     else if (key == "learning_rate") Arguments::learning_rate = stod(value);
     else if (key == "reward_pill") reward_pill = stod(value);
     else if (key == "reward_powerpill") reward_powerpill = stod(value);
@@ -414,8 +405,6 @@ inline vector<pair<string, string>> Arguments::create_json() {
             { "random_seed", to_string(Arguments::random_seed ) },
             { "n_hidden_layers", to_string(n_hidden_layers) },
             { "n_hidden_neurons", to_string(n_hidden_neurons) },
-            { "min_weight_init", to_string(min_weight_init) },
-            { "max_weight_init", to_string(max_weight_init) },
             { "learning_rate", to_string(learning_rate) },
             { "reward_pill", to_string(reward_pill) },
             { "reward_powerpill", to_string(reward_powerpill) },
@@ -481,6 +470,8 @@ void Arguments::postprocess() {
     Arguments::reward_step *= Arguments::pacman_speed;
 
     Arguments::visualization_speed = 180000*Arguments::ghost_speed/Arguments::visualization_speed;
+
+    if (Arguments::pacman_ai_agent == INPUT) Arguments::plays = 1;
 }
 
 #endif

@@ -37,7 +37,7 @@ test = (args, name, cb) ->
     results[meter] = [0...N_REPETITIONS] for meter in METERS
     results.execId = [0...N_REPETITIONS]
 
-    argsString = _.toPairs(args).map((arg) -> arg.join('=')).join(' ')
+    argsString = _.toPairs(args).map((arg) -> if arg[1]? then arg.join('=') else '').join(' ')
     for times in [0...N_REPETITIONS]
         do (times) ->
             command = PACMAN_CMD + " random_seed=#{Math.floor(Math.random()*10000000000)}" + (if argsString.length then " " else "") + argsString
@@ -131,9 +131,9 @@ experiments = [
     }
     {
         name: "Plays"
-        active: yes
+        active: no
         variableArgs:
-            plays: [50000, 10000]
+            plays: [10000, 15000, 50000, 100000]
         foreach:
             name: "HiddenNeurons"
             variableArgs:
@@ -267,6 +267,32 @@ experiments = [
             reward_lose: [-350, -350]
             reward_reverse: [0, -1]
             reward_step: [-5, -4]
+    }
+    {
+        name: "MaxVsAvg"
+        active: no
+        variableArgs:
+            max_intersection_distance: [4, null]
+            reward_kill_ghost: [6, null]
+            reward_lose: [-450, null]
+            reward_pill: [9, null]
+            reward_powerpill: [8, null]
+            reward_reverse: [-1, null]
+            reward_step: [-5, null]
+            reward_win: [200, null]
+    }
+    {
+        name: 'HiddenLayers'
+        active: yes
+        variableArgs:
+            n_hidden_layers: [1, 2, 4, 8, 16, 32]
+        foreach:
+            name: 'HiddenNeurons'
+            active: yes
+            variableArgs:
+                n_hidden_neurons: [20, 40, 60, 80, 100, 150, 200]
+        constantArgs:
+            plays: 15000
     }
 ]
 

@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
     Statistics s_log(Arguments::logging_statistics_precision);
     Statistics s_test(Arguments::test_statistics_precision);
 
-    double max_win_ratio = 0.0;
+    double max_win_ratio = -1;
     Neural_Network max_nn;
 
     bool is_rl = Arguments::pacman_ai_agent == RL;
