@@ -45,7 +45,7 @@ done = (taskid, result) ->
     log.i "Finish request for #{taskid} handed:\n#{JSON.stringify(res, null, 2)}"
 
 perform = (task) ->
-    argsString = _.toPairs(task.args).map((arg) -> if arg[1]? then arg.join('=') else '').join(' ')
+    argsString = _.toPairs(task.data.args).map((arg) -> if arg[1]? then arg.join('=') else '').join(' ')
 
     Q.push((finish) ->
         name = task.data.experiment.name
