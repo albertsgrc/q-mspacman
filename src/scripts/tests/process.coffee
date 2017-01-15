@@ -35,14 +35,20 @@ fs.mkdirSync(DATA_PATH) unless fs.existsSync(DATA_PATH)
 currentTasks = []
 
 redo = (taskid) ->
-    console.log currentTasks.splice(currentTasks.indexOf(taskid), 1)
-    res = request('POST', URL + 'redoTask', { json: { _id: taskid } })
-    log.i "Redo request for #{taskid} handed:\n#{JSON.stringify(res, null, 2)}"
+    currentTasks.splice(currentTasks.indexOf(taskid), 1)
+    try
+        res = request('POST', URL + 'redoTask', { json: { _id: taskid } })
+        log.i "Redo request for #{taskid} handed:\n#{JSON.stringify(res, null, 2)}"
+    catch e
+        log.e "Error while performing redo request for #{taskid}: #{e.toString()}"
 
 done = (taskid, result) ->
     currentTasks.splice(currentTasks.indexOf(taskid), 1)
-    res = request('POST', URL + 'finishTask', { json: { _id: taskid, result } })
-    log.i "Finish request for #{taskid} handed:\n#{JSON.stringify(res, null, 2)}"
+    try
+        res = request('POST', URL + 'finishTask', { json: { _id: taskid, result } })
+        log.i "Finish request for #{taskid} handed:\n#{JSON.stringify(res, null, 2)}"
+    catch e
+        log.e "Error while performing done request for #{taskid}: #{e.toString()}"
 
 perform = (task) ->
     argsString = _.toPairs(task.data.args).map((arg) -> if arg[1]? then arg.join('=') else '').join(' ')
@@ -71,20 +77,26 @@ perform = (task) ->
     )
 
 processTask = ->
-    res = request('POST', URL + "processTask")
-    res = JSON.parse(res.getBody('utf8'))
+    try
+        res = request('POST', URL + "processTask")
+        res = JSON.parse(res.getBody('utf8'))
+    catch e
+        log.e "Error while performing process request: #{e.toString()}"
+
     if res?
         currentTasks.push(res._id)
         perform(res)
         yes
     else
-        log.i "No more tasks"
         no
 
-i = 0
-result = ""
-while i++ < available_threads and processTask()
-    ""
+
+setInterval(->
+    while currentTasks.length < available_threads and processTask()
+        ""
+
+    Q.start()
+, 5000)
 
 
 Q.start()
