@@ -55,7 +55,7 @@ perform = (task) ->
                 log.e(error.toString())
                 redo(task._id)
             else
-                log.i "Experiment #{styler.id name}: Test ##{times+1}: Finished #{styler.cmd command}"
+                log.i "Experiment #{styler.id name}: Test ##{task.data.test}: Finished #{styler.cmd command}"
 
                 result = JSON.parse(stderr)
                 result.neural_network = fs.readFileSync(NN_PATH + "/#{result.neural_network}.txt", 'utf-8')
