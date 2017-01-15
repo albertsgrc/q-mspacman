@@ -1,3 +1,5 @@
+#!/usr/bin/env coffee
+
 _ = require 'lodash'
 fs = require 'fs'
 summary = require 'summary'
@@ -15,7 +17,7 @@ styler = require './styler'
 SRC_PATH = __dirname + "/../../"
 DATA_PATH = SRC_PATH + "../data"
 NN_PATH = DATA_PATH + "/neural-networks"
-PACMAN_CMD = "pacman non_interactive=true"
+PACMAN_CMD = SRC_PATH + "pacman non_interactive=true"
 
 available_threads = os.cpus().length
 
