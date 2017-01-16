@@ -64,17 +64,17 @@ const int DFL_N_ROUNDS_GHOST_REVIVE = 20;
 // and so on. Note that round here also means the time it takes for pacman to move one cell
 const int DFL_N_ROUNDS_BETWEEN_GHOSTS_START = 4;
 
-const int DFL_PLAYS = 10000;
+const int DFL_PLAYS = 15000;
 
 const size_t DFL_RANDOM_SEED = time(0);
 
 /** NEURAL NETWORK ARGUMENTS **/
 
 const int DFL_N_HIDDEN_LAYERS = 1;
-const int DFL_N_HIDDEN_NEURONS = 100;
+const int DFL_N_HIDDEN_NEURONS = 125;
 // For the random initialization of the weights in the neural network
 
-const double DFL_LEARNING_RATE = 0.0004;
+const double DFL_LEARNING_RATE = 0.00015;
 
 
 /** Q-LEARNING ARGUMENTS **/
@@ -127,7 +127,7 @@ const bool DFL_NON_INTERACTIVE = false;
 // training
 const int DFL_N_GAMES_TEST = 5000;
 
-const int DFL_TEST_STATISTICS_PRECISION = 200;
+const int DFL_TEST_STATISTICS_PRECISION = 75;
 
 /** BEST AI SELECTION **/
 
