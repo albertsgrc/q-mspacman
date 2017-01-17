@@ -22,7 +22,7 @@ PACMAN_CMD = SRC_PATH + "pacman non_interactive=true"
 available_threads = os.cpus().length
 
 METERS = ['wins', 'completion']
-URL = "http://localhost:3000/methods/"
+URL = "http://mspacman.ml/methods/"
 
 # Bom's: n_rounds_powerpill=55 initial_scatter_cycle_rounds=40 initial_chase_cycle_rounds=10
 
