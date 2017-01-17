@@ -22,7 +22,7 @@ PACMAN_CMD = SRC_PATH + "pacman non_interactive=true"
 available_threads = os.cpus().length
 
 METERS = ['wins', 'completion']
-URL = "http://mspacman.ml/methods/"
+URL = "http://localhost:3000/methods/"
 
 # Bom's: n_rounds_powerpill=55 initial_scatter_cycle_rounds=40 initial_chase_cycle_rounds=10
 
@@ -42,13 +42,14 @@ redo = (taskid) ->
     catch e
         log.e "Error while performing redo request for #{taskid}: #{e.toString()}"
 
-done = (taskid, result) ->
-    currentTasks.splice(currentTasks.indexOf(taskid), 1)
+done = (task, result) ->
+    console.log task
+    currentTasks.splice(currentTasks.indexOf(task._id), 1)
     try
-        res = request('POST', URL + 'finishTask', { json: { _id: taskid, result } })
-        log.i "Finish request for #{taskid} handed:\n#{JSON.stringify(res, null, 2)}"
+        res = request('POST', URL + 'finishTask', { json: { _id: task._id, result, index: task.data.index, experimentId: task.data.experiment._id } })
+        log.i "Finish request for #{task._id} handed:\n#{JSON.stringify(res, null, 2)}"
     catch e
-        log.e "Error while performing done request for #{taskid}: #{e.toString()}"
+        log.e "Error while performing done request for #{task._id}: #{e.toString()}"
 
 perform = (task) ->
     argsString = _.toPairs(task.data.args).map((arg) -> if arg[1]? then arg.join('=') else '').join(' ')
@@ -68,7 +69,7 @@ perform = (task) ->
                 result = JSON.parse(stderr)
                 result.neural_network = fs.readFileSync(NN_PATH + "/#{result.neural_network}.txt", 'utf-8')
 
-                done(task._id, result)
+                done(task, result)
 
             processTask()
 
@@ -82,13 +83,12 @@ processTask = ->
         res = JSON.parse(res.getBody('utf8'))
     catch e
         log.e "Error while performing process request: #{e.toString()}"
+        return no
 
     if res?
         currentTasks.push(res._id)
         perform(res)
         yes
-    else
-        no
 
 
 setInterval(->
