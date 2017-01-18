@@ -185,17 +185,16 @@ public:
         }
 
         // Weight update inputs
-        for (uint input_from = 0; input_from < n_inputs; ++input_from)
-            for (uint hidden_to = 0; hidden_to < n_hidden_neurons; ++hidden_to) {
+        for (uint hidden_to = 0; hidden_to < n_hidden_neurons; ++hidden_to) {
+            hiddenbiasat(0, hidden_to) += learning_rate*hiddendeltaat(0, hidden_to);
+            for (uint input_from = 0; input_from < n_inputs; ++input_from)
                 inputweightat(hidden_to, input_from) += learning_rate * hiddendeltaat(0, hidden_to) * input[input_from];
-                hiddenbiasat(0, hidden_to) += learning_rate*hiddendeltaat(0, hidden_to);
-            }
+        }
 
         // Weight update for hidden layers
         for (uint layer_to = 1; layer_to < n_hidden_layers; ++layer_to) {
             for (uint neuron_to = 0; neuron_to < n_hidden_neurons; ++neuron_to) {
                 hiddenbiasat(layer_to, neuron_to) += learning_rate*hiddendeltaat(layer_to, neuron_to);
-
                 for (uint neuron_previous = 0; neuron_previous < n_hidden_neurons; ++neuron_previous)
                     hiddenweightat(layer_to, neuron_to, neuron_previous) +=
                             learning_rate*hiddendeltaat(layer_to, neuron_to)*hiddenat(layer_to - 1, neuron_previous);
