@@ -43,7 +43,6 @@ redo = (taskid) ->
         log.e "Error while performing redo request for #{taskid}: #{e.toString()}"
 
 done = (task, result) ->
-    console.log task
     currentTasks.splice(currentTasks.indexOf(task._id), 1)
     try
         res = request('POST', URL + 'finishTask', { json: { _id: task._id, result, index: task.data.index, experimentId: task.data.experiment._id } })
