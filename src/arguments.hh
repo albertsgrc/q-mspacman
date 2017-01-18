@@ -127,7 +127,7 @@ const bool DFL_NON_INTERACTIVE = false;
 // training
 const int DFL_N_GAMES_TEST = 5000;
 
-const int DFL_TEST_STATISTICS_PRECISION = 75;
+const int DFL_TEST_STATISTICS_PRECISION = 200;
 
 /** BEST AI SELECTION **/
 
