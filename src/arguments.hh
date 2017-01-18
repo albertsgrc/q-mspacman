@@ -71,10 +71,10 @@ const size_t DFL_RANDOM_SEED = time(0);
 /** NEURAL NETWORK ARGUMENTS **/
 
 const int DFL_N_HIDDEN_LAYERS = 1;
-const int DFL_N_HIDDEN_NEURONS = 125;
+const int DFL_N_HIDDEN_NEURONS = 100;
 // For the random initialization of the weights in the neural network
 
-const double DFL_LEARNING_RATE = 0.00015;
+const double DFL_LEARNING_RATE = 0.0004;
 
 
 /** Q-LEARNING ARGUMENTS **/
