@@ -243,7 +243,11 @@ int main(int argc, char* argv[]) {
 
         system("mkdir -p ../data/statistics");
 
-        string statistics_path = "../data/statistics/" + nn_id.substr(2) + ".json";
+        string statistics_path;
+        if (is_rl)
+            statistics_path = "../data/statistics/" + nn_id.substr(2) + ".json";
+        else
+            statistics_path = "../data/statistics/" + id() + "-test.json";
 
         ofstream file;
         file.open(statistics_path);

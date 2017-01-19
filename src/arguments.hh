@@ -87,7 +87,7 @@ const double DFL_REWARD_LOSE = -400;
 const double DFL_REWARD_REVERSE = -0.5;
 const double DFL_REWARD_STEP = -5;
 
-const double DFL_DISCOUNT_FACTOR = 0.95;
+const double DFL_DISCOUNT_FACTOR = 0.955;
 
 // When active doesn't allow pacman to reverse its direction
 // when performing exploration, nor change its target direction

@@ -67,7 +67,8 @@ perform = (task) ->
                 log.i "Experiment #{styler.id name}: Test ##{task.data.test}: Finished #{styler.cmd command}"
 
                 result = JSON.parse(stderr)
-                result.neural_network = fs.readFileSync(NN_PATH + "/#{result.neural_network}.txt", 'utf-8')
+                if result.neural_network? and result.neural_network isnt "null"
+                    result.neural_network = fs.readFileSync(NN_PATH + "/#{result.neural_network}.txt", 'utf-8')
 
                 done(task, result)
 
@@ -79,7 +80,7 @@ perform = (task) ->
 
 processTask = ->
     try
-        res = request('POST', URL + "processTask", { json: { key: "keyd" }})
+        res = request('POST', URL + "processTask", { json: { key: "key" }})
         res = JSON.parse(res.getBody('utf8'))
     catch e
         log.e "Error while performing process request: #{e.toString()}"
