@@ -46,7 +46,7 @@ done = (task, result) ->
     console.log task
     currentTasks.splice(currentTasks.indexOf(task._id), 1)
     try
-        res = request('POST', URL + 'finishTask', { json: { _id: task._id, result, index: task.data.index, experimentId: task.data.experiment._id } })
+        res = request('POST', URL + 'finishTask', { json: { _id: task._id, result, index: task.data.index, experimentId: task.data.experiment._id, key: "key" } })
         log.i "Finish request for #{task._id} handed:\n#{JSON.stringify(res, null, 2)}"
     catch e
         log.e "Error while performing done request for #{task._id}: #{e.toString()}"
