@@ -71,7 +71,7 @@ const size_t DFL_RANDOM_SEED = time(0);
 /** NEURAL NETWORK ARGUMENTS **/
 
 const int DFL_N_HIDDEN_LAYERS = 1;
-const int DFL_N_HIDDEN_NEURONS = 100;
+const int DFL_N_HIDDEN_NEURONS = 200;
 // For the random initialization of the weights in the neural network
 
 const double DFL_LEARNING_RATE = 0.0003;
@@ -80,12 +80,12 @@ const double DFL_LEARNING_RATE = 0.0003;
 /** Q-LEARNING ARGUMENTS **/
 
 const double DFL_REWARD_PILL = 9;
-const double DFL_REWARD_POWERPILL = 11;
-const double DFL_REWARD_KILL_GHOST = 6;
-const double DFL_REWARD_WIN = 60;
-const double DFL_REWARD_LOSE = -350;
-const double DFL_REWARD_REVERSE = -1;
-const double DFL_REWARD_STEP = -4;
+const double DFL_REWARD_POWERPILL = 1;
+const double DFL_REWARD_KILL_GHOST = 2;
+const double DFL_REWARD_WIN = 100;
+const double DFL_REWARD_LOSE = -400;
+const double DFL_REWARD_REVERSE = -0.5;
+const double DFL_REWARD_STEP = -5;
 
 const double DFL_DISCOUNT_FACTOR = 0.95;
 
