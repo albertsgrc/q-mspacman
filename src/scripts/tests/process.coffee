@@ -79,7 +79,7 @@ perform = (task) ->
 
 processTask = ->
     try
-        res = request('POST', URL + "processTask")
+        res = request('POST', URL + "processTask", { json: { key: "key" }})
         res = JSON.parse(res.getBody('utf8'))
     catch e
         log.e "Error while performing process request: #{e.toString()}"
