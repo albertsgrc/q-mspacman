@@ -54,6 +54,10 @@ public:
 
             double q = nn.recall(&input[0])[0];
 
+            if (Arguments::plays == 1) {
+                cout << Direction::name(i) << ": " << q << endl;
+            }
+            
             if (q > max_q) {
                 best_dir = d;
                 max_q = q;

@@ -81,7 +81,10 @@ public:
         for (; i < n_weights; ++i)
             weights[i] = distribution_hidden(Arguments::random_generator);
 
-        memset(bias, 0, n_bias*sizeof(double));
+        for (uint j = 0; j < n_bias; ++j)
+            bias[j] = distribution_hidden(Arguments::random_generator);
+
+        memset(bias, 1, n_bias*sizeof(double));
     }
 
     ~Neural_Network() {
@@ -113,6 +116,14 @@ public:
 
     static inline double derivative_sigmoid(double x) {
         return x*(1.0 - x);
+    }
+
+    static inline double relu(double x) {
+        return x > 0 ? x : 0;
+    }
+
+    static inline double derivative_relu(double x) {
+        return x > 0 ? 1 : 0;
     }
 
     inline void set_learning_rate(double v) { learning_rate = v; }
