@@ -17,8 +17,9 @@ University of Groningen.
 
 Disclaimer: Only tested on **Unix** platforms
 
-Gameplay video: https://www.youtube.com/watch?v=Wcs1dmcgvKY
-Experiments webpage: http://mspacman.ml/
+**Gameplay video:** https://www.youtube.com/watch?v=Wcs1dmcgvKY
+
+**Experiments webpage:** http://mspacman.ml/
 
 ## Download and installation instructions
 
