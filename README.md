@@ -17,6 +17,10 @@ University of Groningen.
 
 Disclaimer: Only tested on **Unix** platforms
 
+**Gameplay video:** https://www.youtube.com/watch?v=Wcs1dmcgvKY
+
+**Experiments webpage:** http://mspacman.ml/
+
 ## Download and installation instructions
 
 1. `git clone https://github.com/albertsgrc/q-mspacman.git`
