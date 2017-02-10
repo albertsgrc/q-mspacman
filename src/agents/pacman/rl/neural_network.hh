@@ -136,7 +136,7 @@ public:
             double sum = hiddenbiasat(0, hidden_to);
             for (uint input_from = 0; input_from < n_inputs; ++input_from)
                 sum += input[input_from]*inputweightat(hidden_to, input_from);
-            hiddenat(0, hidden_to) = sigmoid(sum);
+            hiddenat(0, hidden_to) = relu(sum);
         }
 
         // layer - 1 to layer
@@ -145,7 +145,7 @@ public:
                 double sum = hiddenbiasat(layer_to, neuron_to);
                 for (uint neuron_from = 0; neuron_from < n_hidden_neurons; ++neuron_from)
                     sum += hiddenat(layer_to - 1, neuron_from)*hiddenweightat(layer_to, neuron_to, neuron_from);
-                hiddenat(layer_to, neuron_to) = sigmoid(sum);
+                hiddenat(layer_to, neuron_to) = relu(sum);
             }
         }
 
@@ -178,7 +178,7 @@ public:
             for (uint output_from = 0; output_from < n_outputs; ++output_from)
                 delta += delta_output[output_from]*outputweightat(output_from, hidden_to);
 
-            hiddendeltaat(last_hidden_layer, hidden_to) = derivative_sigmoid(hiddenat(last_hidden_layer, hidden_to))*delta;
+            hiddendeltaat(last_hidden_layer, hidden_to) = derivative_relu(hiddenat(last_hidden_layer, hidden_to))*delta;
         }
 
         // Delta for layer layer_to+1 to layer_to
@@ -191,7 +191,7 @@ public:
                              hiddenweightat(layer_to+1, neuron_from, neuron_to);
                 }
 
-                hiddendeltaat(layer_to, neuron_to) = derivative_sigmoid(hiddenat(layer_to, neuron_to))*delta;
+                hiddendeltaat(layer_to, neuron_to) = derivative_relu(hiddenat(layer_to, neuron_to))*delta;
             }
         }
 

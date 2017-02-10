@@ -70,11 +70,11 @@ const size_t DFL_RANDOM_SEED = time(0);
 
 /** NEURAL NETWORK ARGUMENTS **/
 
-const int DFL_N_HIDDEN_LAYERS = 1;
-const int DFL_N_HIDDEN_NEURONS = 200;
+const int DFL_N_HIDDEN_LAYERS = 7;
+const int DFL_N_HIDDEN_NEURONS = 60;
 // For the random initialization of the weights in the neural network
 
-const double DFL_LEARNING_RATE = 0.0003;
+const double DFL_LEARNING_RATE = 0.0000008;
 
 
 /** Q-LEARNING ARGUMENTS **/
@@ -128,6 +128,8 @@ const bool DFL_NON_INTERACTIVE = false;
 const int DFL_N_GAMES_TEST = 5000;
 
 const int DFL_TEST_STATISTICS_PRECISION = 200;
+
+const int DFL_TEST_SAMPLING = 4;
 
 /** BEST AI SELECTION **/
 
@@ -205,6 +207,8 @@ public:
     static double exploration_annealing_max_progression;
     static double exploration_epsilon;
     static double exploration_epsilon_stop_progression;
+    static int test_sampling;
+    static int test_sampling_interval;
 
     static void init(int argc, char* argv[]);
 
@@ -264,6 +268,8 @@ double Arguments::exploration_annealing_min_progression;
 double Arguments::exploration_annealing_max_progression;
 double Arguments::exploration_epsilon;
 double Arguments::exploration_epsilon_stop_progression;
+int Arguments::test_sampling;
+int Arguments::test_sampling_interval;
 
 void Arguments::init(int argc, char* argv[]) {
     Arguments::maze_path = DFL_MAZE_PATH;
@@ -309,6 +315,7 @@ void Arguments::init(int argc, char* argv[]) {
     Arguments::exploration_annealing_max_progression = DFL_EXPLORATION_ANNEALING_MAX_PROGRESSION;
     Arguments::exploration_epsilon = DFL_EXPLORATION_EPSILON;
     Arguments::exploration_epsilon_stop_progression = DFL_EXPLORATION_EPSILON_STOP_PROGRESSION;
+    Arguments::test_sampling = DFL_TEST_SAMPLING;
 
     for (int i = 1; i < argc; ++i) treat_arg(argv[i]);
 }
@@ -383,6 +390,7 @@ void Arguments::assign_argument(const string& key, const string& value) {
     else if (key == "exploration_annealing_max_progression") exploration_annealing_max_progression = stod(value);
     else if (key == "exploration_epsilon") exploration_epsilon = stod(value);
     else if (key == "exploration_epsilon_stop_progression") exploration_epsilon_stop_progression = stod(value);
+    else if (key == "test_sampling") test_sampling = stoi(value);
     else error("Invalid argument name '" + key + "'");
 }
 
@@ -423,6 +431,7 @@ inline vector<pair<string, string>> Arguments::create_json() {
             { "show_inputs", to_string(show_inputs) },
             { "visualization_speed", to_string(visualization_speed) },
             { "test_statistics_precision", to_string(test_statistics_precision) },
+            { "test_sampling", to_string(test_sampling) },
             { "non_interactive", to_string(non_interactive) },
             { "nn_evaluation_start", to_string(nn_evaluation_start) },
             { "nn_evaluation_attribute", '"' + FITNESS_ATTRIBUTES_STRINGS[nn_evaluation_attribute] + '"'},
@@ -472,6 +481,8 @@ void Arguments::postprocess() {
     Arguments::visualization_speed = 180000*Arguments::ghost_speed/Arguments::visualization_speed;
 
     if (Arguments::pacman_ai_agent == INPUT) Arguments::plays = 1;
+
+    Arguments::test_sampling_interval = Arguments::test_statistics_precision/Arguments::test_sampling;
 }
 
 #endif

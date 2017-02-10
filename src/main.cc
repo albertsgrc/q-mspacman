@@ -158,7 +158,9 @@ int main(int argc, char* argv[]) {
     Statistics s_test(Arguments::test_statistics_precision);
 
     double max_win_ratio = -1;
-    Neural_Network max_nn;
+    vector<Neural_Network> max_nns(Arguments::test_sampling);
+    vector<Neural_Network> last_nns(Arguments::test_sampling);
+
 
     bool is_rl = Arguments::pacman_ai_agent == RL;
     cout << "Wins || Completion" << (is_rl ? " || MSE" : "") <<  " (Last " << s_log.precision << " :: Always)" << endl;
@@ -166,6 +168,9 @@ int main(int argc, char* argv[]) {
     /** TRAINING STAGE **/
     int i_start_evaluation = Arguments::plays*Arguments::nn_evaluation_start;
     for (int i = 0; i < Arguments::plays; ++i) {
+        if (i%Arguments::test_sampling_interval == 0)
+            last_nns[(i%Arguments::test_statistics_precision)/Arguments::test_sampling_interval].from_weights(((RL_Pacman_Agent *) (pacman_ai))->nn);
+
         game.play();
 
         double mse = is_rl ? ((RL_Pacman_Agent*)(pacman_ai))->mse_sum_last/game.state.round : 0;
@@ -180,7 +185,7 @@ int main(int argc, char* argv[]) {
 
             if (win_ratio_test > max_win_ratio) {
                 max_win_ratio = win_ratio_test;
-                max_nn.from_weights(((RL_Pacman_Agent *) (pacman_ai))->nn);
+                for (uint j = 0; j < max_nns.size(); ++j) max_nns[j].from_weights(last_nns[j]);
             }
         }
 
@@ -195,42 +200,63 @@ int main(int argc, char* argv[]) {
         game.reset();
     }
 
-    Statistics s_log_test(Arguments::logging_statistics_precision);
-
     string nn_id;
 
+    double maxtestcompletion;
+    double maxtestwins;
     /** TESTING STAGE **/
-    if (is_rl and max_nn.reserved) {
-        cout << endl << "Testing best agent: Wins || Completion" << endl;
+    if (is_rl and max_nns[0].reserved) {
+        int maxtest = -1;
+        double maxtestevaluation = -1;
 
-        Game game_test;
-        game_test.load_maze();
-        pacman_ai = new NN_Pacman_Agent(max_nn);
-        game_test.set_ai(pacman_ai);
+        for (uint j = 0; j < max_nns.size(); ++j) {
+            cout << endl << "Testing best agent: Wins || Completion ("
+                 << Arguments::test_statistics_precision - j*Arguments::test_sampling_interval << " before)" << endl;
 
-        StatisticInfo avg;
+            Game game_test;
+            game_test.load_maze();
+            pacman_ai = new NN_Pacman_Agent(max_nns[j]);
+            game_test.set_ai(pacman_ai);
 
-        for (int i = 0; i < Arguments::n_games_test; ++i) {
-            game_test.play();
+            Statistics s_log_test(Arguments::logging_statistics_precision);
+            StatisticInfo avg;
 
-            s_log_test.new_observation(StatisticInfo(game_test.result));
+            for (int i = 0; i < Arguments::n_games_test; ++i) {
+                game_test.play();
 
-            if (i%Arguments::logging_update_rate == Arguments::logging_update_rate - 1) {
-                avg = s_log_test.avg_always();
-                cout << "\r[" << int(s_log_test.totals_always.won) << "/" << s_log_test.observation_count << "] "
-                     << 100*avg.won << "% || " << 100*avg.completion << "%";
+                s_log_test.new_observation(StatisticInfo(game_test.result));
 
-                cout.flush();
+                if (i%Arguments::logging_update_rate == Arguments::logging_update_rate - 1) {
+                    avg = s_log_test.avg_always();
+                    cout << "\r[" << int(s_log_test.totals_always.won) << "/" << s_log_test.observation_count << "] "
+                         << 100*avg.won << "% || " << 100*avg.completion << "%";
+
+                    cout.flush();
+                }
+
+                game_test.reset();
             }
 
-            game_test.reset();
+            if (Arguments::nn_evaluation_attribute == WINS and avg.won > maxtestevaluation) {
+                maxtestevaluation = avg.won;
+                maxtestwins = avg.won;
+                maxtestcompletion = avg.completion;
+                maxtest = j;
+
+            }
+            else if (Arguments::nn_evaluation_attribute == COMPLETION and avg.completion > maxtestevaluation) {
+                maxtestevaluation = avg.completion;
+                maxtestwins = avg.won;
+                maxtestcompletion = avg.completion;
+                maxtest = j;
+            }
         }
 
-        nn_id = "nn" + id() + "-" + pad(to_string(int(1000*avg.won)), '0', 3);
+        nn_id = "nn" + id() + "-" + pad(to_string(int(1000*maxtestevaluation)), '0', 3);
 
         system("mkdir -p ../data/neural-networks");
         string nn_path = "../data/neural-networks/" + nn_id + ".txt";
-        max_nn.write_file(nn_path);
+        max_nns[maxtest].write_file(nn_path);
         cout << endl << "Written best agent's neural network to " << nn_path;
     }
 
@@ -252,12 +278,10 @@ int main(int argc, char* argv[]) {
         ofstream file;
         file.open(statistics_path);
 
-        StatisticInfo info = is_rl ? s_log_test.avg_always() : s_log.avg_always();
-
         vector<pair<string, string>> json = {
                 { "arguments", ss.str() },
-                { "wins", to_string(info.won) },
-                { "completion", to_string(info.completion) },
+                { "wins", to_string(maxtestwins) },
+                { "completion", to_string(maxtestcompletion) },
                 { "mse", to_string(s_log.avg().mse) },
                 { "neural_network", (is_rl ? ('"' + nn_id + '"') : "null") },
                 { "timestamp", to_string(time(0)) }
