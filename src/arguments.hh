@@ -21,6 +21,10 @@ enum Exploration_Strategy{
     ANNEALING, EPSILON
 };
 
+enum Activation_Function {
+    SIGMOID, RELU
+};
+
 static const string EXPLORATION_STRATEGY_STRINGS[2] = { "annealing", "epsilon" };
 
 const string MAZE_FOLDER = "./mazes/";
@@ -75,6 +79,8 @@ const int DFL_N_HIDDEN_NEURONS = 60;
 // For the random initialization of the weights in the neural network
 
 const double DFL_LEARNING_RATE = 0.0000008;
+
+const Activation_Function DFL_ACTIVATION_FUNCTION = RELU;
 
 
 /** Q-LEARNING ARGUMENTS **/
@@ -209,6 +215,7 @@ public:
     static double exploration_epsilon_stop_progression;
     static int test_sampling;
     static int test_sampling_interval;
+    static Activation_Function activation_function;
 
     static void init(int argc, char* argv[]);
 
@@ -270,6 +277,7 @@ double Arguments::exploration_epsilon;
 double Arguments::exploration_epsilon_stop_progression;
 int Arguments::test_sampling;
 int Arguments::test_sampling_interval;
+Activation_Function Arguments::activation_function;
 
 void Arguments::init(int argc, char* argv[]) {
     Arguments::maze_path = DFL_MAZE_PATH;
@@ -316,6 +324,7 @@ void Arguments::init(int argc, char* argv[]) {
     Arguments::exploration_epsilon = DFL_EXPLORATION_EPSILON;
     Arguments::exploration_epsilon_stop_progression = DFL_EXPLORATION_EPSILON_STOP_PROGRESSION;
     Arguments::test_sampling = DFL_TEST_SAMPLING;
+    Arguments::activation_function = DFL_ACTIVATION_FUNCTION;
 
     for (int i = 1; i < argc; ++i) treat_arg(argv[i]);
 }
@@ -390,6 +399,11 @@ void Arguments::assign_argument(const string& key, const string& value) {
     else if (key == "exploration_annealing_max_progression") exploration_annealing_max_progression = stod(value);
     else if (key == "exploration_epsilon") exploration_epsilon = stod(value);
     else if (key == "exploration_epsilon_stop_progression") exploration_epsilon_stop_progression = stod(value);
+    else if (key == "activation_function") {
+        if (value == "sigmoid") activation_function = SIGMOID;
+        else if (value == "relu") activation_function = RELU;
+        else error("Invalid activation function name '" + value + "'");
+    }
     else if (key == "test_sampling") test_sampling = stoi(value);
     else error("Invalid argument name '" + key + "'");
 }

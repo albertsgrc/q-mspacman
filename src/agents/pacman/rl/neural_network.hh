@@ -126,6 +126,16 @@ public:
         return x > 0 ? 1 : 0;
     }
 
+    static inline double activation(double x) {
+        if (Arguments::activation_function == RELU) return relu(x);
+        else return sigmoid(x);
+    }
+
+    static inline double derivative_activation(double x) {
+        if (Arguments::activation_function == RELU) return derivative_relu(x);
+        else return derivative_sigmoid(x);
+    }
+
     inline void set_learning_rate(double v) { learning_rate = v; }
 
     double* recall(double* input_values) {
@@ -136,7 +146,7 @@ public:
             double sum = hiddenbiasat(0, hidden_to);
             for (uint input_from = 0; input_from < n_inputs; ++input_from)
                 sum += input[input_from]*inputweightat(hidden_to, input_from);
-            hiddenat(0, hidden_to) = relu(sum);
+            hiddenat(0, hidden_to) = activation(sum);
         }
 
         // layer - 1 to layer
@@ -145,7 +155,7 @@ public:
                 double sum = hiddenbiasat(layer_to, neuron_to);
                 for (uint neuron_from = 0; neuron_from < n_hidden_neurons; ++neuron_from)
                     sum += hiddenat(layer_to - 1, neuron_from)*hiddenweightat(layer_to, neuron_to, neuron_from);
-                hiddenat(layer_to, neuron_to) = relu(sum);
+                hiddenat(layer_to, neuron_to) = activation(sum);
             }
         }
 
@@ -178,7 +188,7 @@ public:
             for (uint output_from = 0; output_from < n_outputs; ++output_from)
                 delta += delta_output[output_from]*outputweightat(output_from, hidden_to);
 
-            hiddendeltaat(last_hidden_layer, hidden_to) = derivative_relu(hiddenat(last_hidden_layer, hidden_to))*delta;
+            hiddendeltaat(last_hidden_layer, hidden_to) = derivative_activation(hiddenat(last_hidden_layer, hidden_to))*delta;
         }
 
         // Delta for layer layer_to+1 to layer_to
@@ -191,7 +201,7 @@ public:
                              hiddenweightat(layer_to+1, neuron_from, neuron_to);
                 }
 
-                hiddendeltaat(layer_to, neuron_to) = derivative_relu(hiddenat(layer_to, neuron_to))*delta;
+                hiddendeltaat(layer_to, neuron_to) = derivative_activation(hiddenat(layer_to, neuron_to))*delta;
             }
         }
 
