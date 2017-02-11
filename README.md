@@ -58,3 +58,7 @@ neural network that was generated, which can be obtained from the corresponding
 file name. To ease the process, one can use `last-nn.coffee` script,
 which outputs the name of the last generated neural network. The command would look like:
 `./pacman pacman_ai_agent=$(coffee scripts/last-nn.coffee) plays=1`
+
+Note that with the default arguments the training process takes a long time, because a high number of hidden layers and neurons is used in order to obtain better performance. Still, by using less neurons and training steps good performance (> 60% win ratio) can still be achieved. One example of such parameters would be:
+
+`pacman n_hidden_layers=1 n_hidden_neurons=150 plays=7500 learning_rate=0.0004 activation_function=sigmoid`
