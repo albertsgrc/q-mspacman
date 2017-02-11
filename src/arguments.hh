@@ -68,7 +68,7 @@ const int DFL_N_ROUNDS_GHOST_REVIVE = 20;
 // and so on. Note that round here also means the time it takes for pacman to move one cell
 const int DFL_N_ROUNDS_BETWEEN_GHOSTS_START = 4;
 
-const int DFL_PLAYS = 15000;
+const int DFL_PLAYS = 55000;
 
 const size_t DFL_RANDOM_SEED = time(0);
 
