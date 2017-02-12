@@ -9,6 +9,7 @@
 #include <string>
 #include <cmath>
 #include <fstream>
+#include <functional>
 
 #include "../../../utils.hh"
 #include "../../../arguments.hh"
@@ -39,6 +40,21 @@ private:
         reserved = true;
     }
 
+    void set_activation(Activation_Function activation_function) {
+        switch(activation_function) {
+            case SIGMOID:
+                this->activation = Neural_Network::sigmoid;
+                this->activation_derivative = Neural_Network::derivative_sigmoid;
+                break;
+            case RELU:
+                this->activation = Neural_Network::relu;
+                this->activation_derivative = Neural_Network::derivative_relu;
+                break;
+            default: error("Invalid activation function enum");
+
+        }
+    }
+
 public:
     bool reserved;
 
@@ -61,16 +77,21 @@ public:
 
     double learning_rate;
 
+    Activation_Function activation_function;
+    function<double(double)> activation, activation_derivative;
+
     Neural_Network() : reserved(false) {}
     Neural_Network(const string& path, double learning_rate) : reserved(false), learning_rate(learning_rate) {
         load(path);
     }
 
-    Neural_Network(uint n_inputs, uint n_hidden_layers, uint n_hidden_neurons, uint n_outputs, double learning_rate)
+    Neural_Network(uint n_inputs, uint n_hidden_layers, uint n_hidden_neurons, uint n_outputs, double learning_rate, Activation_Function activation_function)
             : n_inputs(n_inputs), n_hidden_layers(n_hidden_layers),
-              n_hidden_neurons(n_hidden_neurons), n_outputs(n_outputs), learning_rate(learning_rate) {
+              n_hidden_neurons(n_hidden_neurons), n_outputs(n_outputs), learning_rate(learning_rate), activation_function(activation_function) {
 
         reserve();
+
+        set_activation(activation_function);
 
         normal_distribution<double> distribution_inputs(0, sqrt(2.0/n_inputs));
         normal_distribution<double> distribution_hidden(0, sqrt(2.0/n_hidden_neurons));
@@ -103,6 +124,8 @@ public:
         n_hidden_layers = o.n_hidden_layers;
         n_hidden_neurons = o.n_hidden_neurons;
         n_outputs = o.n_outputs;
+        activation = o.activation;
+        activation_derivative = o.activation_derivative;
 
         if (not reserved) reserve();
 
@@ -124,16 +147,6 @@ public:
 
     static inline double derivative_relu(double x) {
         return x > 0 ? 1 : 0;
-    }
-
-    static inline double activation(double x) {
-        if (Arguments::activation_function == RELU) return relu(x);
-        else return sigmoid(x);
-    }
-
-    static inline double derivative_activation(double x) {
-        if (Arguments::activation_function == RELU) return derivative_relu(x);
-        else return derivative_sigmoid(x);
     }
 
     inline void set_learning_rate(double v) { learning_rate = v; }
@@ -188,7 +201,7 @@ public:
             for (uint output_from = 0; output_from < n_outputs; ++output_from)
                 delta += delta_output[output_from]*outputweightat(output_from, hidden_to);
 
-            hiddendeltaat(last_hidden_layer, hidden_to) = derivative_activation(hiddenat(last_hidden_layer, hidden_to))*delta;
+            hiddendeltaat(last_hidden_layer, hidden_to) = activation_derivative(hiddenat(last_hidden_layer, hidden_to))*delta;
         }
 
         // Delta for layer layer_to+1 to layer_to
@@ -201,7 +214,7 @@ public:
                              hiddenweightat(layer_to+1, neuron_from, neuron_to);
                 }
 
-                hiddendeltaat(layer_to, neuron_to) = derivative_activation(hiddenat(layer_to, neuron_to))*delta;
+                hiddendeltaat(layer_to, neuron_to) = activation_derivative(hiddenat(layer_to, neuron_to))*delta;
             }
         }
 
@@ -243,7 +256,19 @@ public:
 
         if (not file.is_open()) error("Invalid file path " + path);
 
-        file >> n_inputs >> n_hidden_layers >> n_hidden_neurons >> n_outputs;
+        string activation_function_str;
+
+        file >> n_inputs >> n_hidden_layers >> n_hidden_neurons >> n_outputs >> activation_function_str;
+
+        if (activation_function_str == "sigmoid") {
+            activation_function = SIGMOID;
+        }
+        else if (activation_function_str == "relu") {
+            activation_function = RELU;
+        }
+        else error("Invalid activation function name '" + activation_function_str +  "' in neural network file");
+
+        set_activation(activation_function);
 
         if (not reserved) reserve();
 
@@ -261,7 +286,8 @@ public:
     }
 
     void write(ostream& o) {
-        o << n_inputs << ' ' << n_hidden_layers << ' ' << n_hidden_neurons << ' ' << n_outputs << endl << endl;
+        o << n_inputs << ' ' << n_hidden_layers << ' ' << n_hidden_neurons << ' ' << n_outputs << ' '
+          << ACTIVATION_FUNCTION_STRINGS[activation_function] << endl << endl;
 
         for (uint i = 0; i < n_bias; ++i)    o << bias[i] << ' ';
         for (uint i = 0; i < n_weights; ++i) o << weights[i] << ' ';

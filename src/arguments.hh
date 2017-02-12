@@ -21,11 +21,13 @@ enum Exploration_Strategy{
     ANNEALING, EPSILON
 };
 
+static const string EXPLORATION_STRATEGY_STRINGS[2] = { "annealing", "epsilon" };
+
 enum Activation_Function {
     SIGMOID, RELU
 };
 
-static const string EXPLORATION_STRATEGY_STRINGS[2] = { "annealing", "epsilon" };
+static const string ACTIVATION_FUNCTION_STRINGS = { "sigmoid", "relu" };
 
 const string MAZE_FOLDER = "./mazes/";
 

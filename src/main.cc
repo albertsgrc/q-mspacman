@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
     /** TRAINING STAGE **/
     int i_start_evaluation = Arguments::plays*Arguments::nn_evaluation_start;
     for (int i = 0; i < Arguments::plays; ++i) {
-        if (i%Arguments::test_sampling_interval == 0)
+        if (is_rl and i%Arguments::test_sampling_interval == 0)
             last_nns[(i%Arguments::test_statistics_precision)/Arguments::test_sampling_interval].from_weights(((RL_Pacman_Agent *) (pacman_ai))->nn);
 
         game.play();

@@ -30,7 +30,7 @@ public:
     Neural_Network nn;
 
     RL_Pacman_Agent() : reward(0), n_games(1),
-                        nn(RL_Pacman_Agent_Inputs::n_inputs, Arguments::n_hidden_layers, Arguments::n_hidden_neurons, 1, Arguments::learning_rate)
+                        nn(RL_Pacman_Agent_Inputs::n_inputs, Arguments::n_hidden_layers, Arguments::n_hidden_neurons, 1, Arguments::learning_rate, Arguments::activation_function)
     {
         previous_input = vector<double>(RL_Pacman_Agent_Inputs::n_inputs, 0.0);
         max_input = vector<double>(RL_Pacman_Agent_Inputs::n_inputs);
