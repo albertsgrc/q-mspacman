@@ -27,7 +27,7 @@ enum Activation_Function {
     SIGMOID, RELU
 };
 
-static const string ACTIVATION_FUNCTION_STRINGS = { "sigmoid", "relu" };
+static const string ACTIVATION_FUNCTION_STRINGS[2] = { "sigmoid", "relu" };
 
 const string MAZE_FOLDER = "./mazes/";
 
