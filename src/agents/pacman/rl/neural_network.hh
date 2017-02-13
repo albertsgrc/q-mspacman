@@ -289,6 +289,8 @@ public:
         o << n_inputs << ' ' << n_hidden_layers << ' ' << n_hidden_neurons << ' ' << n_outputs << ' '
           << ACTIVATION_FUNCTION_STRINGS[activation_function] << endl << endl;
 
+        o.precision(std::numeric_limits<double>::max_digits10);
+
         for (uint i = 0; i < n_bias; ++i)    o << bias[i] << ' ';
         for (uint i = 0; i < n_weights; ++i) o << weights[i] << ' ';
     }
