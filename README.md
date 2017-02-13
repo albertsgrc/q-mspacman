@@ -57,7 +57,9 @@ run `./pacman pacman_ai_agent=nn<id> plays=1`. Here `<id>` is the id of the
 neural network that was generated, which can be obtained from the corresponding
 file name. To ease the process, one can use `last-nn.coffee` script,
 which outputs the name of the last generated neural network. The command would look like:
-`./pacman pacman_ai_agent=$(coffee scripts/last-nn.coffee) plays=1`
+`./pacman pacman_ai_agent=$(coffee scripts/last-nn.coffee) plays=1`.
+
+The best neural network that we obtained during our experiments and testing of the program is included in `data/neural-networks/nnbest.txt`. Its gameplay can be visualized with the command `./pacman pacman_ai_agent=nnbest plays=1`.
 
 Note that with the default arguments the training process takes a long time, because a high number of hidden layers and neurons is used in order to obtain better performance. Still, by using less neurons and training steps good performance (> 60% win ratio) can still be achieved. One example of such parameters would be:
 
