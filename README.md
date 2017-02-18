@@ -17,9 +17,7 @@ University of Groningen.
 
 Disclaimer: Only tested on **Unix** platforms
 
-<p align="center">
 [![Demo Pacman](https://j.gifs.com/Vmk3x5.gif)](https://www.youtube.com/watch?v=Wcs1dmcgvKY)
-</p>
 
 ## Download and installation instructions
 
